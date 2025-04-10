@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: goal-tracker-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: goal-tracker-backend
+  template:
+    metadata:
+      labels:
+        app: goal-tracker-backend
+    spec:
+      containers:
+      - name: goal-tracker-backend
+        image: amckittrick/goal-tracker-backend:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DB_USER
+          value: goal_tracker_production
+        - name: DB_KEY
+          valueFrom:
+            secretKeyRef:
+              name: secret-postgresql-production
+              key: password
+        - name: DB_HOST
+          value: 10.42.42.10
+        - name: DB_NAME
+          value: goal_tracker_production

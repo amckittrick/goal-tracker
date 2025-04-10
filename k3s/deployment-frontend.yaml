@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: goal-tracker-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: goal-tracker-frontend
+  template:
+    metadata:
+      labels:
+        app: goal-tracker-frontend
+    spec:
+      containers:
+      - name: goal-tracker-frontend
+        image: amckittrick/goal-tracker-frontend:latest
+        ports:
+        - containerPort: 80

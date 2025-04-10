@@ -1,0 +1,11 @@
+services:
+  goal-tracker-backend-service:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env.dev
+  goal-tracker-frontend-service:
+    build: ./frontend
+    ports:
+      - "80:80"

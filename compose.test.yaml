@@ -1,0 +1,41 @@
+services:
+  postgres:
+    image: "postgres:9.6"
+    environment:
+     - POSTGRES_USER=test
+     - POSTGRES_PASSWORD=test
+     - POSTGRES_DB=goal_tracker_test
+    ports:
+     - "5432:5432"
+    volumes:
+     - ./backend/temp/postgres:/var/lib/postgresql/data
+  backend-test:
+    environment:
+    - DB_HOST=postgres
+    - DB_NAME=goal_tracker_test
+    - DB_KEY=test
+    - DB_USER=test
+    build:
+      dockerfile: ./backend/Dockerfile.test
+    volumes:
+    - ./backend:/usr/src/app/backend
+    command: >
+      bash -c "
+      python -m backend.wait_for_postgres &&
+      cd backend &&
+      black . &&
+      pylint . &&
+      mypy . --strict --check &&
+      pytest .
+      "
+  frontend-test:
+    build:
+      dockerfile: ./frontend/Dockerfile.test
+    volumes:
+    - ./frontend:/usr/src/app/frontend
+    - /usr/src/app/frontend/node_modules
+    command: >
+      sh -c "
+      npm run lint &&
+      npm run test
+      "

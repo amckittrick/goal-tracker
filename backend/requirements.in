@@ -1,0 +1,6 @@
+alembic
+fastapi[standard]
+strawberry-graphql[fastapi]
+psycopg2-binary
+sqlalchemy
+uvicorn
