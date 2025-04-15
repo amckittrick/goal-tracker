@@ -1,0 +1,7 @@
+.env*
+__pycache__
+.mypy_cache
+.pytest_cache
+.tox
+goal_tracker.egg-info
+venv

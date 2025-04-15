@@ -3,20 +3,24 @@
 from collections.abc import Iterator
 
 import pytest
-from sqlalchemy import MetaData
+from sqlalchemy.orm import close_all_sessions
 
-from backend.database import create_local_engine, init_db
+from backend.database import Base, create_local_engine, init_db
+
+
+@pytest.fixture(scope="session", autouse=True)
+def setup_session() -> None:
+    """Perform onetime setup for the test session."""
+    init_db()
 
 
 @pytest.fixture(autouse=True)
-def setup() -> Iterator[None]:
+def db_setup_cleanup() -> Iterator[None]:
     """Wraps every test to ensure a clean database before and after each test."""
-    init_db()
-    engine = create_local_engine()
-    metadata_obj = MetaData()
-    metadata_obj.drop_all(engine)
-    metadata_obj.create_all(engine)
+    close_all_sessions()
+    Base.metadata.drop_all(bind=create_local_engine())
+
+    close_all_sessions()
+    Base.metadata.create_all(bind=create_local_engine())
 
     yield
-
-    metadata_obj.drop_all(engine)

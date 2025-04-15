@@ -11,6 +11,7 @@ line-length = 120
 
 [tool.pylint]
 max-line-length = 120
+min-similarity-lines=10
 
 [tool.setuptools]
 py-modules = []

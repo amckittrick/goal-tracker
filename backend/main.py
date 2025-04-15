@@ -34,7 +34,7 @@ app = FastAPI(lifespan=lifespan)
 
 app.add_route("/graphql", GraphQL(schema))  # type: ignore
 
-origins = ["http://10.42.42.103", "http://localhost", "http://localhost:5173"]
+origins = ["http://localhost"]
 
 app.add_middleware(
     CORSMiddleware,

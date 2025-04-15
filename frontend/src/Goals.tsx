@@ -1,7 +1,7 @@
 import { useQuery } from '@apollo/client';
 
 import Goal from './Goal.tsx';
-import { gqlGetUserGoals } from './GQLQueries.tsx';
+import { gqlGetUser } from './GQLQueries.tsx';
 
 export default function Goals(
   {
@@ -20,7 +20,7 @@ export default function Goals(
     openModalCreateGoal();
   };
 
-  const { loading, error, data } = useQuery(gqlGetUserGoals, {
+  const { loading, error, data } = useQuery(gqlGetUser, {
     variables: { username }
   });
 
@@ -36,7 +36,7 @@ export default function Goals(
           </button>
         </div>
         <div className="row">
-          {data?.userGoals.map((goal) =>
+          {data?.user.goals.map((goal) =>
             <div key={goal.id} className="col-md-6 col-sm-12">
               <Goal
                 goal={goal}

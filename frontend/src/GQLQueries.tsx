@@ -1,33 +1,38 @@
 import { gql } from './__generated__/gql.ts';
 
+export const gqlGetUser = gql(`
+  query GetUser($username: String!) {
+    user(name: $username) {
+      id
+      name
+      fullname
+      goals {
+        id
+        name
+        requiredActivitiesPerPeriod
+        goalFrequencyId
+        goalFrequency {
+          id
+          name
+          numberOfDays
+        }
+        activities {
+          id
+          goalId
+          completed
+          count
+        }
+      }
+    }
+  }
+`);
+
 export const gqlGetUsers = gql(`
   query GetUsers {
     users {
       id
       name
       fullname
-    }
-  }
-`);
-
-export const gqlGetUserGoals = gql(`
-  query GetUserGoals($username: String! ) {
-    userGoals(username: $username){
-      id
-      name
-      goalFrequencyId
-      goalFrequency {
-        id
-        name
-        numberOfDays
-      }
-      activities {
-        id
-        goalId
-        completed
-        count
-      }
-        requiredActivitiesPerPeriod
     }
   }
 `);
@@ -55,27 +60,6 @@ export const gqlCreateOrUpdateActivity = gql(`
       completed: $completed,
       count: $count
     ){
-      id
-      name
-      goalFrequencyId
-      goalFrequency {
-        id
-        name
-        numberOfDays
-      }
-      activities {
-        id
-        goalId
-        completed
-        count
-      }
-    }
-  }
-`);
-
-export const gqlDeleteActivity = gql(`
-  mutation DeleteActivity($username: String!, $goalName: String!, $date: DateTime! ) {
-    deleteActivity(username: $username, goalName: $goalName, date: $date){
       id
       name
       goalFrequencyId

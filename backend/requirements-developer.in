@@ -2,5 +2,6 @@ black
 mypy
 pip-tools
 pylint
-pytest-asyncio
 pytest
+pytest-asyncio
+pytest-cov
