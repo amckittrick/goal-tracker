@@ -9,5 +9,11 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'happy-dom'
+  },
+  server: {
+    port: 8080,
+    strictPort: true,
+    host: true,
+    allowedHosts: ["Vite"]
   }
 })

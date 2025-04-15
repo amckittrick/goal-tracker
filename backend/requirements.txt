@@ -74,7 +74,9 @@ pygments==2.19.1
 python-dateutil==2.9.0.post0
     # via strawberry-graphql
 python-dotenv==1.1.0
-    # via uvicorn
+    # via
+    #   -r requirements.in
+    #   uvicorn
 python-multipart==0.0.20
     # via
     #   fastapi

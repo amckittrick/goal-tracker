@@ -2,6 +2,7 @@ import { GoalType } from './__generated__/graphql.ts';
 
 import DailyGoalProgress from './DailyGoalProgress.tsx';
 import WeeklyGoalProgress from './WeeklyGoalProgress.tsx';
+import YearlyGoalProgress from './YearlyGoalProgress.tsx';
 
 export default function Goal(
   {
@@ -33,8 +34,18 @@ export default function Goal(
             <i className="bi bi-gear"></i>
           </button>
         </div>
-        { goalFrequency === 'Daily' && <DailyGoalProgress goal={goal} username={username}></DailyGoalProgress> }
-        { goalFrequency === 'Weekly' && <WeeklyGoalProgress goal={goal}></WeeklyGoalProgress> }
+        {
+          goalFrequency === 'Daily' &&
+          <DailyGoalProgress goal={goal} username={username}></DailyGoalProgress>
+        }
+        {
+          goalFrequency === 'Weekly' &&
+          <WeeklyGoalProgress goal={goal} username={username}></WeeklyGoalProgress>
+        }
+        {
+          goalFrequency === 'Yearly' &&
+          <YearlyGoalProgress goal={goal} username={username}></YearlyGoalProgress>
+        }
       </div>
     </div>
   )

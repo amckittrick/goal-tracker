@@ -3,8 +3,9 @@
 
 from dataclasses import field
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
+from sqlalchemy.orm import Session
 import strawberry
 from strawberry import Schema
 
@@ -43,6 +44,7 @@ class GoalType:
     goal_frequency_id: int
     goal_frequency: "GoalFrequencyType"
     activities: List["ActivityType"] = field(default_factory=list)  # pylint: disable=invalid-field-call
+    required_activities_per_period: int
 
 
 def convert_goal(model: GoalModel) -> GoalType:
@@ -54,6 +56,7 @@ def convert_goal(model: GoalModel) -> GoalType:
         goal_frequency_id=model.goal_frequency_id,
         goal_frequency=convert_goal_frequency(model.goal_frequency),
         activities=activity_types,
+        required_activities_per_period=model.required_activities_per_period,
     )
 
 
@@ -71,6 +74,22 @@ def convert_goal_frequency(model: GoalFrequencyModel) -> GoalFrequencyType:
     return GoalFrequencyType(id=model.id, name=model.name, number_of_days=model.number_of_days)
 
 
+def get_activity(db_session: Session, username: str, goal_name: str, date: datetime) -> Tuple[GoalModel, ActivityModel]:
+    """Get an activity on a specified date for a user + goal."""
+    user = db_session.query(UserModel).where(UserModel.name == username).one()
+    for goal in user.goals:
+        if goal.name == goal_name:
+            for activity in goal.activities:
+                date_to_compare = date
+                if (
+                    activity.completed.year == date_to_compare.year
+                    and activity.completed.month == date_to_compare.month
+                    and activity.completed.day == date_to_compare.day
+                ):
+                    return goal, activity
+    raise InvalidAPIArgumentException(f"No activity found on '{date} for goal '{goal_name}' and user '{user}")
+
+
 @strawberry.type
 class ActivityType:
     """Maps to an Activity in the DB."""
@@ -78,11 +97,12 @@ class ActivityType:
     id: int
     goal_id: int
     completed: datetime
+    count: int
 
 
 def convert_activity(model: ActivityModel) -> ActivityType:
     """Convert an ActivityModel to an ActivityType."""
-    return ActivityType(id=model.id, goal_id=model.goal_id, completed=model.completed)
+    return ActivityType(id=model.id, goal_id=model.goal_id, completed=model.completed, count=model.count)
 
 
 @strawberry.type
@@ -128,22 +148,25 @@ class Mutation:
         db = get_db()
         user = UserModel(name=name, fullname=fullname, goals=[])
         db.add(user)
+
         db.commit()
         db.refresh(user)
         return convert_user(user)
 
     @strawberry.mutation
     async def create_goal(
-        self,
-        name: str,
-        username: str,
-        frequency_name: str,
+        self, name: str, username: str, frequency_name: str, required_activities_per_period: Optional[int] = 1
     ) -> UserType:
         """Create a new goal."""
         db = get_db()
         frequency = db.query(GoalFrequencyModel).where(GoalFrequencyModel.name == frequency_name).one()
 
-        goal = GoalModel(name=name, goal_frequency_id=frequency.id, activities=[])
+        goal = GoalModel(
+            name=name,
+            goal_frequency_id=frequency.id,
+            activities=[],
+            required_activities_per_period=required_activities_per_period,
+        )
         db.add(goal)
         db.commit()
 
@@ -151,6 +174,7 @@ class Mutation:
         owner.goals.append(goal)
 
         db.commit()
+        db.refresh(owner)
         return convert_user(owner)
 
     @strawberry.mutation
@@ -162,6 +186,7 @@ class Mutation:
         for goal in user.goals:
             if goal.name == current_goal_name:
                 goal.name = new_goal_name
+
                 db.commit()
                 db.refresh(goal)
                 return convert_goal(goal)
@@ -176,7 +201,9 @@ class Mutation:
         for goal in owner.goals:
             if goal.name == goal_name:
                 additional_user.goals.append(goal)
+
                 db.commit()
+                db.refresh(owner)
                 return convert_user(owner)
         raise InvalidAPIArgumentException(f"No goal found with name '{goal_name}' for user '{owner_username}'")
 
@@ -196,7 +223,8 @@ class Mutation:
         users_needing_deletion = db.query(UserModel).filter(UserModel.goals.any(GoalModel.name == name)).all()
         for user_needing_deletion in users_needing_deletion:
             user_needing_deletion.goals.remove(goal_to_delete)
-            db.commit()
+
+        db.commit()
         db.refresh(user)
         return convert_user(user)
 
@@ -206,44 +234,56 @@ class Mutation:
         db = get_db()
         goal_frequency = GoalFrequencyModel(name=name, number_of_days=number_of_days)
         db.add(goal_frequency)
+
         db.commit()
         db.refresh(goal_frequency)
         return convert_goal_frequency(goal_frequency)
 
     @strawberry.mutation
-    async def create_activity(self, username: str, goal_name: str, completed: datetime) -> GoalType:
+    async def delete_goal_frequency(self, name: str) -> None:
+        """Delete a GoalFreqency."""
+        db = get_db()
+        goal_freqency_to_delete = db.query(GoalFrequencyModel).where(GoalFrequencyModel.name == name).one()
+        db.query(GoalFrequencyModel).where(GoalFrequencyModel.id == goal_freqency_to_delete.id).delete()
+
+        db.commit()
+        return None
+
+    @strawberry.mutation
+    async def create_or_update_activity(
+        self, username: str, goal_name: str, completed: datetime, count: int
+    ) -> GoalType:
         """Create an Activity"""
         db = get_db()
-        user = db.query(UserModel).where(UserModel.name == username).one()
-        for goal in user.goals:
-            if goal.name == goal_name:
-                activity = ActivityModel(completed=completed)
-                goal.activities.append(activity)
-                db.commit()
-                db.refresh(activity)
-                db.refresh(goal)
-                return convert_goal(goal)
+        try:
+            goal, activity = get_activity(db, username, goal_name, completed)
+            activity.count = count
+            db.commit()
+            db.refresh(activity)
+            db.refresh(goal)
+            return convert_goal(goal)
+        except InvalidAPIArgumentException:
+            user = db.query(UserModel).where(UserModel.name == username).one()
+            for goal in user.goals:
+                if goal.name == goal_name:
+                    activity = ActivityModel(completed=completed, count=count)
+                    goal.activities.append(activity)
+
+                    db.commit()
+                    db.refresh(goal)
+                    return convert_goal(goal)
         raise InvalidAPIArgumentException(f"No goal found with name '{goal_name}' for user '{username}'")
 
     @strawberry.mutation
     async def delete_activity(self, username: str, goal_name: str, date: datetime) -> GoalType:
         """Delete an Activity."""
         db = get_db()
-        user = db.query(UserModel).where(UserModel.name == username).one()
-        for goal in user.goals:
-            if goal.name == goal_name:
-                for activity in goal.activities:
-                    date_to_compare = date
-                    if (
-                        activity.completed.year == date_to_compare.year
-                        and activity.completed.month == date_to_compare.month
-                        and activity.completed.day == date_to_compare.day
-                    ):
-                        db.query(ActivityModel).filter(ActivityModel.id == activity.id).delete()
-                db.commit()
-                db.refresh(goal)
-                return convert_goal(goal)
-        raise InvalidAPIArgumentException(f"No goal found with name '{goal_name}' for user '{username}'")
+        goal, activity = get_activity(db, username, goal_name, date)
+        db.query(ActivityModel).filter(ActivityModel.id == activity.id).delete()
+
+        db.commit()
+        db.refresh(goal)
+        return convert_goal(goal)
 
 
 schema = Schema(query=Query, mutation=Mutation)

@@ -52,13 +52,14 @@ MUTATION_CREATE_GOAL = """
     }
 """
 
-MUTATION_CREATE_ACTIVITY = """
-    mutation createActivity($username: String!, $goalName: String!, $completed: DateTime!) {
-        createActivity(username: $username, goalName: $goalName, completed: $completed) {
+MUTATION_CREATE_OR_UPDATE_ACTIVITY = """
+    mutation createOrUpdateActivity($username: String!, $goalName: String!, $completed: DateTime!, $count: Int!) {
+        createOrUpdateActivity(username: $username, goalName: $goalName, completed: $completed, count: $count) {
             id
             name
             activities {
                 completed
+                count
             }
         }
     }
@@ -121,20 +122,26 @@ async def test_lifecycle() -> None:
     }
 
     mutation_add_activity_result = await schema.execute(
-        MUTATION_CREATE_ACTIVITY,
+        MUTATION_CREATE_OR_UPDATE_ACTIVITY,
         variable_values={
             "username": "fake-user-1",
             "goalName": "Fake Goal",
             "completed": "1970-01-01T00:00:00Z",
+            "count": 1,
         },
     )
 
     assert mutation_add_activity_result.errors is None
     assert mutation_add_activity_result.data is not None
-    assert mutation_add_activity_result.data["createActivity"] == {
+    assert mutation_add_activity_result.data["createOrUpdateActivity"] == {
         "id": 1,
         "name": "Fake Goal",
-        "activities": [{"completed": "1970-01-01T00:00:00"}],
+        "activities": [
+            {
+                "completed": "1970-01-01T00:00:00",
+                "count": 1,
+            }
+        ],
     }
 
     await schema.execute(

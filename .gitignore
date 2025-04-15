@@ -4,6 +4,7 @@ backend/__pycache__
 backend/.mypy_cache
 backend/.pytest_cache
 backend/.tox
+backend/alembic/__pycache__/
 backend/goal_tracker.egg-info
 backend/venv
 backend/tests/__pycache__

@@ -1,7 +1,6 @@
-import { useMutation } from '@apollo/client';
-
 import { GoalType } from './__generated__/graphql.ts';
-import { gqlCreateActivity, gqlDeleteActivity } from './GQLQueries.tsx';
+
+import ActivityCheckbox from './ActivityCheckbox.tsx';
 
 export function DayMonthYearEqual(dateOne: Date, dateTwo: Date) {
   return (
@@ -15,25 +14,9 @@ export default function DailyGoalProgress({ goal, username }: { goal: GoalType, 
   interface DayEntry {
     symbol: string;
     dayCode: string;
-    achieved: boolean | null;
+    numberOfActivities: number
     dateString: string,
   }
-  
-  const [CreateActivity, createActivityStatus] = useMutation(gqlCreateActivity);
-  const [DeleteActivity, deleteActivityStatus] = useMutation(gqlDeleteActivity);
-
-  if (createActivityStatus.loading || deleteActivityStatus.loading) return <p>Loading ...</p>;
-  if (createActivityStatus.error) return <p>Submission error : {createActivityStatus.error.message}</p>;
-  if (deleteActivityStatus.error) return <p>Submission error : {deleteActivityStatus.error.message}</p>;
-
-  const toggleAchieved = (dateToToggle: string, goalName: string, username: string, currentlyAchieved: boolean | null) => {
-    if (currentlyAchieved === true) {
-      DeleteActivity({ variables:{ username: username, goalName: goalName, date: dateToToggle}});
-      
-    } else {
-      CreateActivity({ variables:{ username: username, goalName: goalName, completed: dateToToggle}});
-    }
-  };
 
   const today = new Date();
   const day = today.getDay();
@@ -48,14 +31,14 @@ export default function DailyGoalProgress({ goal, username }: { goal: GoalType, 
       symbols[i] = {
         symbol: "bi bi-question-square-fill text-secondary",
         dayCode: dayCodes[i],
-        achieved: null,
+        numberOfActivities: 0,
         dateString: dayToCompare.toISOString(),
       };
     } else {
       symbols[i] = {
         symbol: "bi bi-x-square-fill text-danger",
         dayCode: dayCodes[i],
-        achieved: false,
+        numberOfActivities: 0,
         dateString: dayToCompare.toISOString(),
       };
     }
@@ -63,7 +46,7 @@ export default function DailyGoalProgress({ goal, username }: { goal: GoalType, 
       const activityCompletedString = activity.completed + 'Z';
       if (DayMonthYearEqual(dayToCompare, new Date(activityCompletedString)) === true) {
         symbols[i].symbol = "bi bi-check-square-fill text-success";
-        symbols[i].achieved = true;
+        symbols[i].numberOfActivities = symbols[i].numberOfActivities + activity.count;
       }
     })
     dayToCompare = new Date(dayToCompare.setDate(dayToCompare.getDate() + 1));
@@ -72,9 +55,15 @@ export default function DailyGoalProgress({ goal, username }: { goal: GoalType, 
   return(
     <div className="mx-3 d-flex justify-content-between">
       {symbols.map((dayEntry, index) => 
-        <div key={index} className="mx-2" onClick={() => toggleAchieved(dayEntry.dateString, goal.name, username, dayEntry.achieved)}>
+        <div key={index} className="mx-2">
           <p className="mb-1">{dayEntry.dayCode}</p>
-          <i className={dayEntry.symbol}></i>
+          <ActivityCheckbox
+            date={dayEntry.dateString}
+            goalName={goal.name}
+            username={username}
+            numberOfActivities={dayEntry.numberOfActivities}
+            requiredActivitiesPerPeriod={goal.requiredActivitiesPerPeriod}>
+          </ActivityCheckbox>
         </div>
       )}
     </div>

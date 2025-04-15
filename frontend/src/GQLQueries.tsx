@@ -25,7 +25,9 @@ export const gqlGetUserGoals = gql(`
         id
         goalId
         completed
+        count
       }
+        requiredActivitiesPerPeriod
     }
   }
 `);
@@ -40,9 +42,19 @@ export const gqlCreateUser = gql(`
   }
 `);
 
-export const gqlCreateActivity = gql(`
-  mutation CreateActivity($username: String!, $goalName: String!, $completed: String! ) {
-    createActivity(username: $username, goalName: $goalName, completed: $completed){
+export const gqlCreateOrUpdateActivity = gql(`
+  mutation CreateOrUpdateActivity(
+    $username: String!,
+    $goalName: String!,
+    $completed: DateTime!,
+    $count: Int!
+  ) {
+    createOrUpdateActivity(
+      username: $username,
+      goalName: $goalName,
+      completed: $completed,
+      count: $count
+    ){
       id
       name
       goalFrequencyId
@@ -55,13 +67,14 @@ export const gqlCreateActivity = gql(`
         id
         goalId
         completed
+        count
       }
     }
   }
 `);
 
 export const gqlDeleteActivity = gql(`
-  mutation DeleteActivity($username: String!, $goalName: String!, $date: String! ) {
+  mutation DeleteActivity($username: String!, $goalName: String!, $date: DateTime! ) {
     deleteActivity(username: $username, goalName: $goalName, date: $date){
       id
       name
@@ -75,14 +88,25 @@ export const gqlDeleteActivity = gql(`
         id
         goalId
         completed
+        count
       }
     }
   }
 `);
 
 export const gqlCreateGoal = gql(`
-  mutation CreateGoal($goalName: String!, $username: String!, $goalFrequency: String! ) {
-    createGoal(name: $goalName, username: $username, frequencyName: $goalFrequency){
+  mutation CreateGoal(
+    $goalName: String!,
+    $username: String!,
+    $goalFrequency: String!,
+    $requiredActivitiesPerPeriod: Int!
+  ) {
+    createGoal(
+      name: $goalName,
+      username: $username,
+      frequencyName: $goalFrequency,
+      requiredActivitiesPerPeriod: $requiredActivitiesPerPeriod
+    ){
       id
       name
       goals {
@@ -98,6 +122,7 @@ export const gqlCreateGoal = gql(`
           id
           goalId
           completed
+          count
         }
       }
     }
@@ -122,6 +147,7 @@ export const gqlAddGoalToUser = gql(`
             id
             goalId
             completed
+            count
           }
         }
       }
@@ -146,6 +172,7 @@ export const gqlDeleteGoal = gql(`
           id
           goalId
           completed
+          count
         }
       }
     }
@@ -159,6 +186,7 @@ export const gqlRenameGoal = gql(`
           name
           activities {
               completed
+              count
           }
       }
   }

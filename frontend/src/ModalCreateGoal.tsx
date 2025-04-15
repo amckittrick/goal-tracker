@@ -8,6 +8,7 @@ export default function ModalCreateGoal(
 ) {
   const [goalName, setGoalName] = React.useState("");
   const [goalFrequency, setGoalFrequency] = React.useState("");
+  const [requiredActivitiesPerPeriod, setRequiredActivitiesPerPeriod] = React.useState(1);
 
   const [createGoal, createGoalStatus] = useMutation(gqlCreateGoal);
   const getGoalFrequencesStatus = useQuery(gqlGetGoalFrequencies);
@@ -30,7 +31,16 @@ export default function ModalCreateGoal(
               <form
                 onSubmit={event => {
                   event.preventDefault();
-                  createGoal({ variables:{ goalName: goalName, username: username, goalFrequency: goalFrequency}});
+                  createGoal(
+                    {
+                      variables: {
+                        goalName: goalName,
+                        username: username,
+                        goalFrequency: goalFrequency,
+                        requiredActivitiesPerPeriod: requiredActivitiesPerPeriod
+                      }
+                    }
+                  );
                   setGoalName('');
                   setGoalFrequency('');
                   closeModal();
@@ -60,6 +70,21 @@ export default function ModalCreateGoal(
                         <option value={goalFrequency.name}>{goalFrequency.name}</option>
                     )}
                   </select>
+                  <label
+                    htmlFor="requiredActivitiesPerPeriodRange"
+                    className="form-label">Required Number of Activities Per Period</label>
+                  <input
+                    type="range"
+                    className="form-range"
+                    min="1"
+                    max="10"
+                    id="requiredActivitiesPerPeriodRange"
+                    value={requiredActivitiesPerPeriod}
+                    onChange={(event) => {
+                      setRequiredActivitiesPerPeriod(Number(event.target.value));
+                    }}>
+                    </input>
+                    <span>{requiredActivitiesPerPeriod}</span>
                 </div>
                 <button type="submit" className="btn btn-primary">Create Goal</button>
               </form>

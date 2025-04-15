@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import os
 from typing import Callable, List, Optional
 
+from dotenv import load_dotenv
 from sqlalchemy import Column, create_engine, Engine, ForeignKey, String, Table
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, sessionmaker, Session
 
@@ -24,14 +25,14 @@ init_db: FunctionWithSessionLocalAttr
 
 def get_db_connection_str() -> str:
     """Return a string representing the connection to the database."""
-    if "DB_USER" not in os.environ:
-        raise GoalTrackerException("'DB_USER' environment variable not found.")
-    if "DB_KEY" not in os.environ:
-        raise GoalTrackerException("'DB_KEY' environment variable not found.")
-    if "DB_HOST" not in os.environ:
-        raise GoalTrackerException("'DB_HOST' environment variable not found.")
-    if "DB_NAME" not in os.environ:
-        raise GoalTrackerException("'DB_NAME' environment variable not found.")
+    required_options = ["DB_USER", "DB_KEY", "DB_HOST", "DB_NAME"]
+    if all(option not in os.environ for option in required_options):
+        load_dotenv(os.path.join(os.getcwd(), "backend", ".env.dev"))
+
+    for required_option in required_options:
+        if required_option not in os.environ:
+            raise GoalTrackerException(f"'{required_option}' environment variable not found.")
+
     return f"postgresql+psycopg2://{os.environ['DB_USER']}:{os.environ['DB_KEY']}@{os.environ['DB_HOST']}/{os.environ['DB_NAME']}"  # pylint: disable=line-too-long
 
 
@@ -88,6 +89,7 @@ class Goal(Base):
     __tablename__ = "goal"
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(30))
+    required_activities_per_period: Mapped[int] = mapped_column(default=1)
 
     goal_frequency_id: Mapped[int] = mapped_column(ForeignKey("goal_frequency.id"))
     goal_frequency: Mapped["GoalFrequency"] = relationship()
@@ -113,3 +115,4 @@ class Activity(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     goal_id: Mapped[int] = mapped_column(ForeignKey("goal.id"))
     completed: Mapped[datetime] = mapped_column(default=datetime.now(timezone.utc))
+    count: Mapped[int] = mapped_column()
