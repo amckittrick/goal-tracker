@@ -116,3 +116,12 @@ class Activity(Base):
     goal_id: Mapped[int] = mapped_column(ForeignKey("goal.id"))
     completed: Mapped[datetime] = mapped_column(default=datetime.now(timezone.utc))
     count: Mapped[int] = mapped_column()
+
+
+class Encouragement(Base):
+    """An encouraging quote."""
+
+    __tablename__ = "encouragement"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    quote: Mapped[str] = mapped_column(String(248))
+    author: Mapped[str] = mapped_column(String(64))

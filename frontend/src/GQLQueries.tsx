@@ -184,4 +184,14 @@ export const gqlGetGoalFrequencies = gql(`
       numberOfDays
     }
   }
-`)
+`);
+
+export const gqlGetEncouragement = gql(`
+  query getEncouragement {
+    encouragement {
+      id
+      author
+      quote
+    }
+  }
+`);

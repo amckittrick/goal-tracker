@@ -29,7 +29,7 @@ export default function Header(
     const today = new Date();
 
     return (
-      <nav className="navbar navbar-expand-lg" style={{background: "#9e4700"}}>
+      <nav className="navbar navbar-expand-lg bg-secondary">
         <div className="container-fluid">
           <div className="navbar-nav flex-row">
             <a className="navbar-brand p-0 mx-1">{username} | {today.toDateString()}</a>

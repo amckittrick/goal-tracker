@@ -33,4 +33,3 @@ export default function ActivityCheckbox(
     </div>
   )
 }
-

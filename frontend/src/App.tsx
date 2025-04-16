@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@apollo/client';
 
+import Encouragement from './Encouragement.tsx';
 import Header from './Header.tsx';
 import User from './User.tsx';
 import UserSelection from './UserSelection.tsx';
@@ -51,6 +52,7 @@ function App() {
         (<UserSelection usernames={usernames} updateUser={updateUser}></UserSelection>) : 
         (<User username={currentUsername}></User>)
       }
+      <Encouragement></Encouragement>
     </div>
   )
 }

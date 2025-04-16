@@ -3,6 +3,7 @@
 
 from dataclasses import field
 from datetime import datetime
+from random import randrange
 from typing import List, Optional, Tuple
 
 from sqlalchemy.orm import Session
@@ -12,6 +13,7 @@ from strawberry import Schema
 from backend.database import (
     Activity as ActivityModel,
     get_db,
+    Encouragement as EncouragementModel,
     Goal as GoalModel,
     GoalFrequency as GoalFrequencyModel,
     User as UserModel,
@@ -74,6 +76,20 @@ def convert_goal_frequency(model: GoalFrequencyModel) -> GoalFrequencyType:
     return GoalFrequencyType(id=model.id, name=model.name, number_of_days=model.number_of_days)
 
 
+@strawberry.type
+class EncouragementType:
+    """Provides encouragement to the user."""
+
+    id: int
+    quote: str
+    author: str
+
+
+def convert_encouragement(model: EncouragementModel) -> EncouragementType:
+    """Convert an EncouragementModel to an EncouragementType."""
+    return EncouragementType(id=model.id, quote=model.quote, author=model.author)
+
+
 def get_activity(db_session: Session, username: str, goal_name: str, date: datetime) -> Tuple[GoalModel, ActivityModel]:
     """Get an activity on a specified date for a user + goal."""
     user = db_session.query(UserModel).where(UserModel.name == username).one()
@@ -128,6 +144,13 @@ class Query:
         """Get all GoalFrequency options from the DB."""
         db = get_db()
         return [convert_goal_frequency(goal_frequency) for goal_frequency in db.query(GoalFrequencyModel).all()]
+
+    @strawberry.field
+    async def encouragement(self) -> EncouragementType:
+        """Provides encouragement to the user."""
+        db = get_db()
+        rand = randrange(0, db.query(EncouragementModel).count())
+        return convert_encouragement(db.query(EncouragementModel)[rand])
 
 
 @strawberry.type

@@ -77,7 +77,7 @@ export default function ModalCreateGoal(
                     type="range"
                     className="form-range"
                     min="1"
-                    max="10"
+                    max="50"
                     id="requiredActivitiesPerPeriodRange"
                     value={requiredActivitiesPerPeriod}
                     onChange={(event) => {

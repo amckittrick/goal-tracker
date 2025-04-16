@@ -23,6 +23,7 @@ type Documents = {
     "\n  mutation DeleteGoal($goalName: String!, $username: String! ) {\n    deleteGoal(name: $goalName, username: $username) {\n      id\n      name\n      goals {\n        id\n        name\n        goalFrequencyId\n        goalFrequency {\n          id\n          name\n          numberOfDays\n        }\n        activities {\n          id\n          goalId\n          completed\n          count\n        }\n      }\n    }\n  }\n": typeof types.DeleteGoalDocument,
     "\n  mutation renameGoal($currentGoalName: String!, $newGoalName: String!, $username: String!) {\n      renameGoal(currentGoalName: $currentGoalName, newGoalName: $newGoalName, username: $username) {\n          id\n          name\n          activities {\n              completed\n              count\n          }\n      }\n  }\n": typeof types.RenameGoalDocument,
     "\n  query goalFrequencies {\n    goalFrequencies {\n      id\n      name\n      numberOfDays\n    }\n  }\n": typeof types.GoalFrequenciesDocument,
+    "\n  query getEncouragement {\n    encouragement {\n      id\n      author\n      quote\n    }\n  }\n": typeof types.GetEncouragementDocument,
 };
 const documents: Documents = {
     "\n  query GetUser($username: String!) {\n    user(name: $username) {\n      id\n      name\n      fullname\n      goals {\n        id\n        name\n        requiredActivitiesPerPeriod\n        goalFrequencyId\n        goalFrequency {\n          id\n          name\n          numberOfDays\n        }\n        activities {\n          id\n          goalId\n          completed\n          count\n        }\n      }\n    }\n  }\n": types.GetUserDocument,
@@ -34,6 +35,7 @@ const documents: Documents = {
     "\n  mutation DeleteGoal($goalName: String!, $username: String! ) {\n    deleteGoal(name: $goalName, username: $username) {\n      id\n      name\n      goals {\n        id\n        name\n        goalFrequencyId\n        goalFrequency {\n          id\n          name\n          numberOfDays\n        }\n        activities {\n          id\n          goalId\n          completed\n          count\n        }\n      }\n    }\n  }\n": types.DeleteGoalDocument,
     "\n  mutation renameGoal($currentGoalName: String!, $newGoalName: String!, $username: String!) {\n      renameGoal(currentGoalName: $currentGoalName, newGoalName: $newGoalName, username: $username) {\n          id\n          name\n          activities {\n              completed\n              count\n          }\n      }\n  }\n": types.RenameGoalDocument,
     "\n  query goalFrequencies {\n    goalFrequencies {\n      id\n      name\n      numberOfDays\n    }\n  }\n": types.GoalFrequenciesDocument,
+    "\n  query getEncouragement {\n    encouragement {\n      id\n      author\n      quote\n    }\n  }\n": types.GetEncouragementDocument,
 };
 
 /**
@@ -86,6 +88,10 @@ export function gql(source: "\n  mutation renameGoal($currentGoalName: String!, 
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function gql(source: "\n  query goalFrequencies {\n    goalFrequencies {\n      id\n      name\n      numberOfDays\n    }\n  }\n"): (typeof documents)["\n  query goalFrequencies {\n    goalFrequencies {\n      id\n      name\n      numberOfDays\n    }\n  }\n"];
+/**
+ * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function gql(source: "\n  query getEncouragement {\n    encouragement {\n      id\n      author\n      quote\n    }\n  }\n"): (typeof documents)["\n  query getEncouragement {\n    encouragement {\n      id\n      author\n      quote\n    }\n  }\n"];
 
 export function gql(source: string) {
   return (documents as any)[source] ?? {};
