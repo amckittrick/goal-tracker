@@ -12,8 +12,6 @@ from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 
-from backend.database import get_db, Encouragement
-
 
 # revision identifiers, used by Alembic.
 revision: str = "3cced2940039"
@@ -34,9 +32,10 @@ def upgrade() -> None:
     op.create_table(
         "encouragement",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("quote", sa.String(length=248), nullable=False),
+        sa.Column("quote", sa.String(length=256), nullable=False),
         sa.Column("author", sa.String(length=64), nullable=False),
         sa.PrimaryKeyConstraint("id"),
+        if_not_exists=True
     )
 
     with open(os.path.join(os.getcwd(), "backend", "quotes.txt")) as quotes_file:

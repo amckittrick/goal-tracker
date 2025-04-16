@@ -123,5 +123,5 @@ class Encouragement(Base):
 
     __tablename__ = "encouragement"
     id: Mapped[int] = mapped_column(primary_key=True)
-    quote: Mapped[str] = mapped_column(String(248))
+    quote: Mapped[str] = mapped_column(String(256))
     author: Mapped[str] = mapped_column(String(64))
