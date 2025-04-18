@@ -6,6 +6,7 @@ import Header from './Header.tsx';
 import User from './User.tsx';
 import UserSelection from './UserSelection.tsx';
 import { gqlGetUsers } from './GQLQueries.tsx';
+import GQLLoading from './GQLLoading.tsx';
 
 import "bootstrap-icons/font/bootstrap-icons.css";
 
@@ -33,7 +34,13 @@ function App() {
 
   const { loading, error, data } = useQuery(gqlGetUsers);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) {
+    return (
+      <div className="bg-dark">
+        <GQLLoading></GQLLoading>
+      </div>
+    )
+  }
   if (error) return <p>Error : {error.message}</p>;
 
   let usernames: string[] = [];
@@ -43,7 +50,7 @@ function App() {
   }
 
   return (
-    <div>
+    <div className="bg-dark">
       <Header
         username={currentUsername}
         updateUser={updateUser}>

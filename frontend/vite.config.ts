@@ -14,6 +14,9 @@ export default defineConfig({
     port: 8080,
     strictPort: true,
     host: true,
-    allowedHosts: ["Vite"]
-  }
+    allowedHosts: ["Vite"],
+    watch: {
+      usePolling: true,
+    },
+  },
 })

@@ -7,6 +7,10 @@ export function GetMonday() {
     return day;
 };
 
-export function DayInWeek(weekStartDate: Date, weekEndDate: Date, comparisonDate: Date) {
+export function DayInWeek(weekStartDate: Date, weekEndDate: Date, comparisonYear: number, comparisonMonth: number, comparisonDay: number) {
+    const comparisonDate = new Date();
+    comparisonDate.setUTCFullYear(comparisonYear);
+    comparisonDate.setUTCMonth(comparisonMonth);
+    comparisonDate.setUTCDate(comparisonDay);
     return weekStartDate <= comparisonDate && comparisonDate <= weekEndDate;
 }

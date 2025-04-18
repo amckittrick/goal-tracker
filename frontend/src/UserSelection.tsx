@@ -7,8 +7,8 @@ export default function Goal(
       };
 
   return (
-    <div className="d-flex justify-content-center">
-      <h3>Pick a User</h3>
+    <div className="d-flex justify-content-center text-primary">
+      <h3 className="mx-2">Pick a User</h3>
       <div>
         {
           usernames.map((username) =>

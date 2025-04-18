@@ -1,0 +1,37 @@
+$primary: #8b67cd;
+$secondary: #b7a0e0;
+$dark: #170d28;
+$body-bg: $dark;
+
+@import "bootstrap";
+
+.modal-content {
+  background-color: $dark;
+  color: $primary;
+  border: $primary solid 2px;
+}
+
+.modal-header {
+  border-bottom: $primary solid 2px;
+}
+
+.form-control {
+  background-color: $secondary;
+  color: $dark;
+  border: $primary solid 2px;
+}
+
+.form-control:focus {
+  background-color: $secondary;
+  color: $dark;
+}
+
+.form-select {
+  background-color: $secondary;
+  color: $dark;
+}
+
+.form-select:focus {
+  background-color: $secondary;
+  color: $dark;
+}

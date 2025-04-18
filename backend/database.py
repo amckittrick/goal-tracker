@@ -1,12 +1,11 @@
 # pylint: disable=too-few-public-methods
 """Interface to the database."""
 
-from datetime import datetime, timezone
 import os
 from typing import Callable, List, Optional
 
 from dotenv import load_dotenv
-from sqlalchemy import Column, create_engine, Engine, ForeignKey, String, Table
+from sqlalchemy import Column, create_engine, Engine, ForeignKey, String, Table, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, sessionmaker, Session
 
 from backend.exceptions import GoalTrackerException
@@ -114,8 +113,11 @@ class Activity(Base):
     __tablename__ = "activity"
     id: Mapped[int] = mapped_column(primary_key=True)
     goal_id: Mapped[int] = mapped_column(ForeignKey("goal.id"))
-    completed: Mapped[datetime] = mapped_column(default=datetime.now(timezone.utc))
+    completed_year: Mapped[int] = mapped_column()
+    completed_month: Mapped[int] = mapped_column()
+    completed_day: Mapped[int] = mapped_column()
     count: Mapped[int] = mapped_column()
+    UniqueConstraint("completed_year", "completed_month", "completed_day")
 
 
 class Encouragement(Base):

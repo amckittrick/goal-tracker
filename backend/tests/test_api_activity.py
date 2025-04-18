@@ -9,12 +9,28 @@ from backend.tests.test_api_user import MUTATION_CREATE_USER
 
 
 MUTATION_CREATE_OR_UPDATE_ACTIVITY = """
-    mutation createOrUpdateActivity($username: String!, $goalName: String!, $completed: DateTime!, $count: Int!) {
-        createOrUpdateActivity(username: $username, goalName: $goalName, completed: $completed, count: $count) {
+    mutation createOrUpdateActivity(
+        $username: String!,
+        $goalName: String!,
+        $completedYear: Int!,
+        $completedMonth: Int!,
+        $completedDay: Int!,
+        $count: Int!
+    ) {
+        createOrUpdateActivity(
+            username: $username,
+            goalName: $goalName,
+            completedYear: $completedYear,
+            completedMonth: $completedMonth,
+            completedDay: $completedDay,
+            count: $count
+        ) {
             id
             name
             activities {
-                completed
+                completedYear
+                completedMonth
+                completedDay
                 count
             }
         }
@@ -43,7 +59,9 @@ async def test_create_activity_nominal() -> None:
         variable_values={
             "username": "fake-user",
             "goalName": "fake-goal",
-            "completed": "1970-01-01T00:00:00Z",
+            "completedYear": 1970,
+            "completedMonth": 1,
+            "completedDay": 1,
             "count": 1,
         },
     )
@@ -54,7 +72,9 @@ async def test_create_activity_nominal() -> None:
         "name": "fake-goal",
         "activities": [
             {
-                "completed": "1970-01-01T00:00:00",
+                "completedYear": 1970,
+                "completedMonth": 1,
+                "completedDay": 1,
                 "count": 1,
             }
         ],
@@ -65,7 +85,9 @@ async def test_create_activity_nominal() -> None:
         variable_values={
             "username": "fake-user",
             "goalName": "fake-goal",
-            "completed": "1970-01-01T00:00:00Z",
+            "completedYear": 1970,
+            "completedMonth": 1,
+            "completedDay": 1,
             "count": 2,
         },
     )
@@ -76,7 +98,9 @@ async def test_create_activity_nominal() -> None:
         "name": "fake-goal",
         "activities": [
             {
-                "completed": "1970-01-01T00:00:00",
+                "completedYear": 1970,
+                "completedMonth": 1,
+                "completedDay": 1,
                 "count": 2,
             }
         ],
@@ -93,7 +117,9 @@ async def test_create_activity_missing_goal() -> None:
         variable_values={
             "username": "fake-user",
             "goalName": "fake-goal",
-            "completed": "1970-01-01T00:00:00Z",
+            "completedYear": 1970,
+            "completedMonth": 1,
+            "completedDay": 1,
             "count": 1,
         },
     )

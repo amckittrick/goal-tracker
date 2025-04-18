@@ -19,7 +19,9 @@ export const gqlGetUser = gql(`
         activities {
           id
           goalId
-          completed
+          completedYear
+          completedMonth
+          completedDay
           count
         }
       }
@@ -51,13 +53,17 @@ export const gqlCreateOrUpdateActivity = gql(`
   mutation CreateOrUpdateActivity(
     $username: String!,
     $goalName: String!,
-    $completed: DateTime!,
+    $completedYear: Int!,
+    $completedMonth: Int!,
+    $completedDay: Int!,
     $count: Int!
   ) {
     createOrUpdateActivity(
       username: $username,
       goalName: $goalName,
-      completed: $completed,
+      completedYear: $completedYear,
+      completedMonth: $completedMonth,
+      completedDay: $completedDay,
       count: $count
     ){
       id
@@ -71,7 +77,9 @@ export const gqlCreateOrUpdateActivity = gql(`
       activities {
         id
         goalId
-        completed
+        completedYear
+        completedMonth
+        completedDay
         count
       }
     }
@@ -105,7 +113,9 @@ export const gqlCreateGoal = gql(`
         activities {
           id
           goalId
-          completed
+          completedYear
+          completedMonth
+          completedDay
           count
         }
       }
@@ -130,7 +140,9 @@ export const gqlAddGoalToUser = gql(`
           activities {
             id
             goalId
-            completed
+            completedYear
+            completedMonth
+            completedDay
             count
           }
         }
@@ -155,7 +167,9 @@ export const gqlDeleteGoal = gql(`
         activities {
           id
           goalId
-          completed
+          completedYear
+          completedMonth
+          completedDay
           count
         }
       }
@@ -169,7 +183,9 @@ export const gqlRenameGoal = gql(`
           id
           name
           activities {
-              completed
+              completedYear
+              completedMonth
+              completedDay
               count
           }
       }

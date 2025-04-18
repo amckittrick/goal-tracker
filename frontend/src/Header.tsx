@@ -23,20 +23,20 @@ export default function Header(
     
     const { loading, error, data } = useQuery(gqlGetUsers);
   
-    if (loading) return <p>Loading...</p>;
+    if (loading) return null;
     if (error) return <p>Error : {error.message}</p>;
   
     const today = new Date();
 
     return (
-      <nav className="navbar navbar-expand-lg bg-secondary">
+      <nav className="navbar navbar-expand-lg border-bottom border-primary">
         <div className="container-fluid">
           <div className="navbar-nav flex-row">
-            <a className="navbar-brand p-0 mx-1">{username} | {today.toDateString()}</a>
+            <a className="navbar-brand p-0 mx-1 text-primary">{username} | {today.toDateString()}</a>
           </div>
           <ul className="navbar-nav flex-row flex-wrap ms-md-auto">
             <li className="nav-item dropdown mx-1">
-              <a className="nav-link dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <a className="nav-link dropdown-toggle text-primary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                 User
               </a>
               <ul className="dropdown-menu dropdown-menu-end">
@@ -48,7 +48,7 @@ export default function Header(
                 )}
               </ul>
             </li>
-            <i className="btn bi bi-gear mx-1" onClick={openModalGeneralAdmin}></i>
+            <i className="btn bi bi-gear mx-1 text-primary" onClick={openModalGeneralAdmin}></i>
           </ul>
         </div>
         {modalGeneralAdminIsOpen && <ModalGeneralAdmin closeModal={closeModalGeneralAdmin}></ModalGeneralAdmin>}

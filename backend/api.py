@@ -1,8 +1,7 @@
-# pylint: disable=too-few-public-methods
+# pylint: disable=too-few-public-methods,too-many-arguments,too-many-positional-arguments
 """Schema used to connect the API to the Database."""
 
 from dataclasses import field
-from datetime import datetime
 from random import randrange
 from typing import List, Optional, Tuple
 
@@ -90,20 +89,23 @@ def convert_encouragement(model: EncouragementModel) -> EncouragementType:
     return EncouragementType(id=model.id, quote=model.quote, author=model.author)
 
 
-def get_activity(db_session: Session, username: str, goal_name: str, date: datetime) -> Tuple[GoalModel, ActivityModel]:
+def get_activity(
+    db_session: Session, username: str, goal_name: str, year: int, month: int, day: int
+) -> Tuple[GoalModel, ActivityModel]:
     """Get an activity on a specified date for a user + goal."""
     user = db_session.query(UserModel).where(UserModel.name == username).one()
     for goal in user.goals:
         if goal.name == goal_name:
             for activity in goal.activities:
-                date_to_compare = date
                 if (
-                    activity.completed.year == date_to_compare.year
-                    and activity.completed.month == date_to_compare.month
-                    and activity.completed.day == date_to_compare.day
+                    activity.completed_year == year
+                    and activity.completed_month == month
+                    and activity.completed_day == day
                 ):
                     return goal, activity
-    raise InvalidAPIArgumentException(f"No activity found on '{date} for goal '{goal_name}' and user '{user}")
+    raise InvalidAPIArgumentException(
+        f"No activity found on '{year}/{month}/{day} for goal '{goal_name}' and user '{user}"
+    )
 
 
 @strawberry.type
@@ -112,13 +114,22 @@ class ActivityType:
 
     id: int
     goal_id: int
-    completed: datetime
+    completed_year: int
+    completed_month: int
+    completed_day: int
     count: int
 
 
 def convert_activity(model: ActivityModel) -> ActivityType:
     """Convert an ActivityModel to an ActivityType."""
-    return ActivityType(id=model.id, goal_id=model.goal_id, completed=model.completed, count=model.count)
+    return ActivityType(
+        id=model.id,
+        goal_id=model.goal_id,
+        completed_year=model.completed_year,
+        completed_month=model.completed_month,
+        completed_day=model.completed_day,
+        count=model.count,
+    )
 
 
 @strawberry.type
@@ -266,12 +277,12 @@ class Mutation:
 
     @strawberry.mutation
     async def create_or_update_activity(
-        self, username: str, goal_name: str, completed: datetime, count: int
+        self, username: str, goal_name: str, completed_year: int, completed_month: int, completed_day: int, count: int
     ) -> GoalType:
         """Create an Activity"""
         db = get_db()
         try:
-            goal, activity = get_activity(db, username, goal_name, completed)
+            goal, activity = get_activity(db, username, goal_name, completed_year, completed_month, completed_day)
             activity.count = count
             db.commit()
             db.refresh(activity)
@@ -281,7 +292,12 @@ class Mutation:
             user = db.query(UserModel).where(UserModel.name == username).one()
             for goal in user.goals:
                 if goal.name == goal_name:
-                    activity = ActivityModel(completed=completed, count=count)
+                    activity = ActivityModel(
+                        completed_year=completed_year,
+                        completed_month=completed_month,
+                        completed_day=completed_day,
+                        count=count,
+                    )
                     goal.activities.append(activity)
 
                     db.commit()

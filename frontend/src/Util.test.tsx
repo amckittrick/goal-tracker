@@ -9,6 +9,6 @@ describe('DayInWeek', () => {
         weekEndDate.setDate(weekStartDate.getDate() + 7);
         const dayToCompare = new Date();
         dayToCompare.setDate(weekStartDate.getDate() + 2);
-        expect(DayInWeek(weekStartDate, weekEndDate, dayToCompare)).toBeTruthy();
+        expect(DayInWeek(weekStartDate, weekEndDate, dayToCompare.getUTCFullYear(), dayToCompare.getUTCMonth(), dayToCompare.getUTCDate())).toBeTruthy();
     })
 })

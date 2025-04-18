@@ -24,13 +24,13 @@ export default function Goals(
     variables: { username }
   });
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return null;
   if (error) return <p>Error : {error.message}</p>;
 
   return (
     <div>
         <div className="d-flex">
-          <button type="button" className="mb-2 btn btn-secondary btn-sm" onClick={handleCreateGoalClick}>
+          <button type="button" className="mb-2 btn btn-primary btn-sm" onClick={handleCreateGoalClick}>
             Create Goal
             <i className="mx-2 bi bi-journal-plus"></i>
           </button>

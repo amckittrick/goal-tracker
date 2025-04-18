@@ -25,7 +25,7 @@ export default function ModalCreateGoal(
           <div className="modal-content">
             <div className="modal-header">
               <h5 className="modal-title">Create New Goal</h5>
-              <button type="button" className="btn-close" onClick={closeModal} aria-label="Close"></button>
+              <button type="button" className="btn-close btn-close-white" onClick={closeModal} aria-label="Close"></button>
             </div>
             <div className="modal-body">
               <form

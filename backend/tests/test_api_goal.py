@@ -38,7 +38,9 @@ mutation renameGoal($currentGoalName: String!, $newGoalName: String!, $username:
     renameGoal(currentGoalName: $currentGoalName, newGoalName: $newGoalName, username: $username) {
         name
         activities {
-            completed
+            completedYear
+            completedMonth
+            completedDay
         }
     }
 }

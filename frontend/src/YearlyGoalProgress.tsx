@@ -5,8 +5,7 @@ import ActivityCheckbox from './ActivityCheckbox.tsx';
 export default function YearlyGoalProgress({ goal, username }: { goal: GoalType, username: string }) {
   interface YearEntry {
     symbol: string;
-    yearCode: number;
-    dateString: string;
+    date: Date;
     numberOfActivities: number;
   }
 
@@ -15,30 +14,28 @@ export default function YearlyGoalProgress({ goal, username }: { goal: GoalType,
   firstDayOfYear.setHours(0, 0, 0, 0);
   const yearEntry: YearEntry = {
     symbol: "bi bi-question-square-fill text-secondary",
-    yearCode: firstDayOfYear.getUTCFullYear(),
-    dateString: firstDayOfYear.toISOString(),
+    date: firstDayOfYear,
     numberOfActivities: 0,
   };
 
   goal.activities.map((activity) => {
-      const activityCompletedString = activity.completed + 'Z';
-      if (new Date(activityCompletedString).getUTCFullYear() == firstDayOfYear.getUTCFullYear()) {
-        yearEntry.symbol = "bi bi-check-square-fill text-success";
+      if (activity.completedYear == firstDayOfYear.getUTCFullYear()) {
         yearEntry.numberOfActivities = yearEntry.numberOfActivities + activity.count;
       }
   })
 
   return (
-    <div className="mx-3 d-flex justify-content-between">
+    <div className="mx-3 d-flex justify-content-between text-primary">
       <div className="mx-2">
-        <p className="mb-1">{yearEntry.yearCode}</p>
+        <p className="mb-1">{yearEntry.date.getUTCFullYear()}</p>
         <div className="text-center">
           <ActivityCheckbox
-            date={yearEntry.dateString}
+            date={yearEntry.date}
             goalName={goal.name}
             username={username}
             numberOfActivities={yearEntry.numberOfActivities}
-            requiredActivitiesPerPeriod={goal.requiredActivitiesPerPeriod}>
+            requiredActivitiesPerPeriod={goal.requiredActivitiesPerPeriod}
+            defaultSymbol={yearEntry.symbol}>
           </ActivityCheckbox>
         </div>
       </div>

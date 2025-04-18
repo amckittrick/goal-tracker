@@ -35,7 +35,7 @@ def upgrade() -> None:
         sa.Column("quote", sa.String(length=256), nullable=False),
         sa.Column("author", sa.String(length=64), nullable=False),
         sa.PrimaryKeyConstraint("id"),
-        if_not_exists=True
+        if_not_exists=True,
     )
 
     with open(os.path.join(os.getcwd(), "backend", "quotes.txt")) as quotes_file:
