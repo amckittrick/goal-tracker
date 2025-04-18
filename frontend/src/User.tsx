@@ -1,10 +1,11 @@
 import { useState } from 'react';
 
+import { UserObject } from './App.tsx';
 import Goals from './Goals.tsx';
 import ModalCreateGoal from './ModalCreateGoal.tsx';
 import ModalEditGoal from './ModalEditGoal.tsx';
 
-export default function User({ username }: { username: string }) {
+export default function User({ user }: { user: UserObject }) {
   const [modalEditGoalIsOpen, setModalEditGoalIsOpen] = useState(false);
   const [modalEditGoalData, setModalEditGoalData] = useState({ goalName: '' });
 
@@ -30,20 +31,20 @@ export default function User({ username }: { username: string }) {
   return  (
   <div className="m-3">
     <Goals
-      username={username}
+      currentUserEmail={user.email}
       openModalEditGoal={openModalEditGoal}
       openModalCreateGoal={openModalCreateGoal}>
     </Goals>
     {modalEditGoalIsOpen && (
       <ModalEditGoal
-        username={username}
+      currentUserEmail={user.email}
         data={modalEditGoalData}
         closeModal={closeModalEditGoal}>
       </ModalEditGoal>
     )}
     {modalCreateGoalIsOpen && (
       <ModalCreateGoal
-        username={username}
+        currentUserEmail={user.email}
         closeModal={closeModalCreateGoal}>
       </ModalCreateGoal>
     )}

@@ -3,7 +3,7 @@ import ModalEditGoalDelete from './ModalEditGoalDelete.tsx';
 import ModalEditGoalRenameGoal from './ModalEditGoalRenameGoal.tsx';
 
 export default function ModalEditGoal(
-  { username, data, closeModal}: { username: string, data: { goalName: string }, closeModal: () => void }
+  { currentUserEmail, data, closeModal}: { currentUserEmail: string, data: { goalName: string }, closeModal: () => void }
 ) {
 
   return (
@@ -17,11 +17,11 @@ export default function ModalEditGoal(
               <button type="button" className="btn-close btn-close-white" onClick={closeModal} aria-label="Close"></button>
             </div>
             <div className="modal-body">
-              <ModalEditGoalDelete username={username} data={data} closeModal={closeModal}></ModalEditGoalDelete>
+              <ModalEditGoalDelete currentUserEmail={currentUserEmail} data={data} closeModal={closeModal}></ModalEditGoalDelete>
               <hr></hr>
-              <ModalEditGoalAddUser username={username} data={data} closeModal={closeModal}></ModalEditGoalAddUser>
+              <ModalEditGoalAddUser currentUserEmail={currentUserEmail} data={data} closeModal={closeModal}></ModalEditGoalAddUser>
               <hr></hr>
-              <ModalEditGoalRenameGoal username={username} data={data} closeModal={closeModal}></ModalEditGoalRenameGoal>
+              <ModalEditGoalRenameGoal currentUserEmail={currentUserEmail} data={data} closeModal={closeModal}></ModalEditGoalRenameGoal>
             </div>
           </div>
         </div>

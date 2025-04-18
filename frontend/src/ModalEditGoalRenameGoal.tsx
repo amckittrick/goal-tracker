@@ -4,7 +4,7 @@ import React from 'react';
 import { gqlRenameGoal } from './GQLQueries';
 
 export default function ModalEditGoalRenameGoal(
-  { username, data, closeModal}: { username: string, data: { goalName: string }, closeModal: () => void }
+  { currentUserEmail, data, closeModal}: { currentUserEmail: string, data: { goalName: string }, closeModal: () => void }
 ) {
   const [renameGoal, { loading, error }] = useMutation(gqlRenameGoal);
 
@@ -17,7 +17,7 @@ export default function ModalEditGoalRenameGoal(
     <form
       onSubmit={event => {
         event.preventDefault();
-        renameGoal({ variables:{ currentGoalName: data.goalName, username: username, newGoalName: newGoalName}});
+        renameGoal({ variables:{ currentGoalName: data.goalName, ownerEmail: currentUserEmail, newGoalName: newGoalName}});
         closeModal();
       }}>
       <div className="mb-3">

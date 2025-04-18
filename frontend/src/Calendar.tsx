@@ -15,7 +15,7 @@ function RenderDays(
   activities: ActivityType[],
   requiredActivitiesPerPeriod: number,
   goalName: string,
-  username: string,
+  currentUserEmail: string,
 ) {
   const currentMonthFirstDayOfWeek = new Date(year, month, 1).getDay();
   const currentMonthLastDate = new Date(year, month + 1, 0).getDate();
@@ -35,7 +35,7 @@ function RenderDays(
         activities={activities}
         requiredActivitiesPerPeriod={requiredActivitiesPerPeriod}
         goalName={goalName}
-        username={username}>
+        currentUserEmail={currentUserEmail}>
       </CalendarSingleDay>
     )
   }
@@ -52,7 +52,7 @@ function RenderDays(
         activities={activities}
         requiredActivitiesPerPeriod={requiredActivitiesPerPeriod}
         goalName={goalName}
-        username={username}>
+        currentUserEmail={currentUserEmail}>
       </CalendarSingleDay>
     )
   }
@@ -69,7 +69,7 @@ function RenderDays(
         activities={activities}
         requiredActivitiesPerPeriod={requiredActivitiesPerPeriod}
         goalName={goalName}
-        username={username}>
+        currentUserEmail={currentUserEmail}>
       </CalendarSingleDay>
     )
   }
@@ -83,7 +83,7 @@ function RenderWeeks(
   activities: ActivityType[],
   requiredActivitiesPerPeriod: number,
   goalName: string,
-  username: string,
+  currentUserEmail: string,
 ) {
   const currentMonthFirstDayOfWeek = new Date(year, month, 1).getDay();
   const currentMonthLastDate = new Date(year, month + 1, 0).getDate();
@@ -101,7 +101,7 @@ function RenderWeeks(
       activities={activities}
       requiredActivitiesPerPeriod={requiredActivitiesPerPeriod}
       goalName={goalName}
-      username={username}>
+      currentUserEmail={currentUserEmail}>
     </CalendarSingleWeek>
   )
 
@@ -116,7 +116,7 @@ function RenderWeeks(
         activities={activities}
         requiredActivitiesPerPeriod={requiredActivitiesPerPeriod}
         goalName={goalName}
-        username={username}>
+        currentUserEmail={currentUserEmail}>
       </CalendarSingleWeek>
     )
   }
@@ -132,7 +132,7 @@ function RenderWeeks(
       activities={activities}
       requiredActivitiesPerPeriod={requiredActivitiesPerPeriod}
       goalName={goalName}
-      username={username}>
+      currentUserEmail={currentUserEmail}>
     </CalendarSingleWeek>
   )
 
@@ -144,7 +144,7 @@ export default function Calendar(
     activities,
     requiredActivitiesPerPeriod,
     goalName,
-    username,
+    currentUserEmail,
     daily,
     openModalEditGoal
   }:
@@ -152,7 +152,7 @@ export default function Calendar(
     activities: ActivityType[],
     requiredActivitiesPerPeriod: number,
     goalName: string,
-    username: string,
+    currentUserEmail: string,
     daily: boolean,
     openModalEditGoal: ( data: { goalName: string }) => void
   }
@@ -230,7 +230,7 @@ export default function Calendar(
             </ul>
             <ul className="calendar-dates d-flex flex-wrap p-0">
               {
-                daily ? RenderDays(year, month, activities, requiredActivitiesPerPeriod, goalName, username) : RenderWeeks(year, month, activities, requiredActivitiesPerPeriod, goalName, username)
+                daily ? RenderDays(year, month, activities, requiredActivitiesPerPeriod, goalName, currentUserEmail) : RenderWeeks(year, month, activities, requiredActivitiesPerPeriod, goalName, currentUserEmail)
               }
             </ul>
           </div>

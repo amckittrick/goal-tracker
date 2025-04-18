@@ -10,7 +10,7 @@ from backend.tests.test_api_user import MUTATION_CREATE_USER
 
 MUTATION_CREATE_OR_UPDATE_ACTIVITY = """
     mutation createOrUpdateActivity(
-        $username: String!,
+        $ownerEmail: String!,
         $goalName: String!,
         $completedYear: Int!,
         $completedMonth: Int!,
@@ -18,7 +18,7 @@ MUTATION_CREATE_OR_UPDATE_ACTIVITY = """
         $count: Int!
     ) {
         createOrUpdateActivity(
-            username: $username,
+            ownerEmail: $ownerEmail,
             goalName: $goalName,
             completedYear: $completedYear,
             completedMonth: $completedMonth,
@@ -41,7 +41,7 @@ MUTATION_CREATE_OR_UPDATE_ACTIVITY = """
 @pytest.mark.asyncio
 async def test_create_activity_nominal() -> None:
     """Test nominal creation of an activity."""
-    await schema.execute(MUTATION_CREATE_USER, variable_values={"name": "fake-user", "fullname": "Fake User"})
+    await schema.execute(MUTATION_CREATE_USER, variable_values={"email": "fake.user@fake.com", "fullname": "Fake User"})
     await schema.execute(
         MUTATION_CREATE_GOAL_FREQUENCY, variable_values={"name": "fake-goal-frequency", "numberOfDays": 1}
     )
@@ -50,14 +50,14 @@ async def test_create_activity_nominal() -> None:
         variable_values={
             "name": "fake-goal",
             "frequencyName": "fake-goal-frequency",
-            "username": "fake-user",
+            "ownerEmail": "fake.user@fake.com",
         },
     )
 
     create_activity_result = await schema.execute(
         MUTATION_CREATE_OR_UPDATE_ACTIVITY,
         variable_values={
-            "username": "fake-user",
+            "ownerEmail": "fake.user@fake.com",
             "goalName": "fake-goal",
             "completedYear": 1970,
             "completedMonth": 1,
@@ -83,7 +83,7 @@ async def test_create_activity_nominal() -> None:
     update_activity_result = await schema.execute(
         MUTATION_CREATE_OR_UPDATE_ACTIVITY,
         variable_values={
-            "username": "fake-user",
+            "ownerEmail": "fake.user@fake.com",
             "goalName": "fake-goal",
             "completedYear": 1970,
             "completedMonth": 1,
@@ -110,12 +110,12 @@ async def test_create_activity_nominal() -> None:
 @pytest.mark.asyncio
 async def test_create_activity_missing_goal() -> None:
     """Test an exception is raised when attempting to add an activity to a goal when the goal is not found."""
-    await schema.execute(MUTATION_CREATE_USER, variable_values={"name": "fake-user", "fullname": "Fake User"})
+    await schema.execute(MUTATION_CREATE_USER, variable_values={"email": "fake.user@fake.com", "fullname": "Fake User"})
 
     create_activity_result = await schema.execute(
         MUTATION_CREATE_OR_UPDATE_ACTIVITY,
         variable_values={
-            "username": "fake-user",
+            "ownerEmail": "fake.user@fake.com",
             "goalName": "fake-goal",
             "completedYear": 1970,
             "completedMonth": 1,
@@ -124,4 +124,6 @@ async def test_create_activity_missing_goal() -> None:
         },
     )
     assert create_activity_result.errors is not None
-    assert create_activity_result.errors[0].message == "No goal found with name 'fake-goal' for user 'fake-user'"
+    assert (
+        create_activity_result.errors[0].message == "No goal found with name 'fake-goal' for user 'fake.user@fake.com'"
+    )

@@ -7,7 +7,7 @@ export default function ActivityCheckbox(
   {
     date,
     goalName,
-    username,
+    currentUserEmail,
     numberOfActivities,
     requiredActivitiesPerPeriod,
     defaultSymbol
@@ -15,7 +15,7 @@ export default function ActivityCheckbox(
   {
     date: Date,
     goalName: string,
-    username: string,
+    currentUserEmail: string,
     numberOfActivities: number,
     requiredActivitiesPerPeriod: number,
     defaultSymbol: string
@@ -26,12 +26,12 @@ export default function ActivityCheckbox(
   if (CreateOrUpdateActivityStatus.loading) return <GQLLoading></GQLLoading>;
   if (CreateOrUpdateActivityStatus.error) return <p>Submission error : {CreateOrUpdateActivityStatus.error.message}</p>;
 
-  const toggleAchieved = (date: Date, goalName: string, username: string, currentCount: number, newCount: number) => {
+  const toggleAchieved = (date: Date, goalName: string, currentUserEmail: string, currentCount: number, newCount: number) => {
     const countToSet = currentCount == newCount ? 0 : newCount;
     CreateOrUpdateActivity(
       {
         variables: {
-          username: username,
+          ownerEmail: currentUserEmail,
           goalName: goalName,
           completedYear: date.getUTCFullYear(),
           completedMonth: date.getUTCMonth() + 1,
@@ -50,7 +50,7 @@ export default function ActivityCheckbox(
         <i
           key={index}
           className={index >= numberOfActivities ? defaultSymbol : 'bi bi-check-square-fill text-success'}
-          onClick={() => toggleAchieved(date, goalName, username, numberOfActivities, index + 1)}>
+          onClick={() => toggleAchieved(date, goalName, currentUserEmail, numberOfActivities, index + 1)}>
         </i>
       )}
     </div>

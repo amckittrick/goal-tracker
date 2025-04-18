@@ -7,13 +7,13 @@ export default function Goal(
   {
     goal,
     goalFrequency,
-    username,
+    currentUserEmail,
     openModalEditGoal
   }:
   {
     goal: GoalType,
     goalFrequency: string,
-    username: string,
+    currentUserEmail: string,
     openModalEditGoal: ( data: { goalName: string }) => void
   }
 ) {
@@ -26,7 +26,7 @@ export default function Goal(
           activities={goal.activities}
           requiredActivitiesPerPeriod={goal.requiredActivitiesPerPeriod}
           goalName={goal.name}
-          username={username}
+          currentUserEmail={currentUserEmail}
           daily={true}
           openModalEditGoal={openModalEditGoal}>
         </Calendar>
@@ -37,14 +37,14 @@ export default function Goal(
           activities={goal.activities}
           requiredActivitiesPerPeriod={goal.requiredActivitiesPerPeriod}
           goalName={goal.name}
-          username={username}
+          currentUserEmail={currentUserEmail}
           daily={false}
           openModalEditGoal={openModalEditGoal}>
         </Calendar>
       }
       {
         goalFrequency === 'Yearly' &&
-        <YearlyGoalProgress goal={goal} username={username}></YearlyGoalProgress>
+        <YearlyGoalProgress goal={goal} currentUserEmail={currentUserEmail}></YearlyGoalProgress>
       }
     </div>
   )

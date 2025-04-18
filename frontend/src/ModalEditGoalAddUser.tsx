@@ -4,10 +4,10 @@ import React from 'react';
 import { gqlAddGoalToUser, gqlGetUsers } from './GQLQueries';
 
 export default function ModalEditGoalAddUser(
-  { username, data, closeModal}: { username: string, data: { goalName: string }, closeModal: () => void }
+  { currentUserEmail, data, closeModal}: { currentUserEmail: string, data: { goalName: string }, closeModal: () => void }
 ) {
   const [addGoalToUser, addGoalToUserStatus] = useMutation(gqlAddGoalToUser);
-  const [additionalUsername, setAdditionalUsername] = React.useState('');
+  const [additionalUserEmail, setadditionalUserEmail] = React.useState('');
 
   const getUsersStatus = useQuery(gqlGetUsers);
 
@@ -19,7 +19,7 @@ export default function ModalEditGoalAddUser(
     <form
       onSubmit={event => {
         event.preventDefault();
-        addGoalToUser({ variables:{ goalName: data.goalName, ownerUsername: username, additionalUsername: additionalUsername}});
+        addGoalToUser({ variables:{ goalName: data.goalName, ownerEmail: currentUserEmail, additionalUserEmail: additionalUserEmail}});
         closeModal();
       }}>
       <div className="mb-3">
@@ -28,12 +28,12 @@ export default function ModalEditGoalAddUser(
           className="form-select"
           aria-label="Additional User"
           onChange={(event) => {
-            setAdditionalUsername(event.target.value);
+            setadditionalUserEmail(event.target.value);
           }}>
           <option selected>Select Additional User</option>
           {
             getUsersStatus.data?.users.map((user) =>
-              <option value={user.name}>{user.name}</option>
+              <option value={user.email}>{user.fullname}</option>
           )}
         </select>
         <button type="submit" className="btn btn-secondary btn-sm my-2">

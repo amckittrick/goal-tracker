@@ -1,10 +1,10 @@
 import { gql } from './__generated__/gql.ts';
 
 export const gqlGetUser = gql(`
-  query GetUser($username: String!) {
-    user(name: $username) {
+  query GetUser($email: String!) {
+    user(email: $email) {
       id
-      name
+      email
       fullname
       goals {
         id
@@ -33,17 +33,7 @@ export const gqlGetUsers = gql(`
   query GetUsers {
     users {
       id
-      name
-      fullname
-    }
-  }
-`);
-
-export const gqlCreateUser = gql(`
-  mutation CreateUser($username: String!, $fullname: String! ) {
-    createUser(name: $username, fullname: $fullname){
-      id
-      name
+      email
       fullname
     }
   }
@@ -51,7 +41,7 @@ export const gqlCreateUser = gql(`
 
 export const gqlCreateOrUpdateActivity = gql(`
   mutation CreateOrUpdateActivity(
-    $username: String!,
+    $ownerEmail: String!,
     $goalName: String!,
     $completedYear: Int!,
     $completedMonth: Int!,
@@ -59,7 +49,7 @@ export const gqlCreateOrUpdateActivity = gql(`
     $count: Int!
   ) {
     createOrUpdateActivity(
-      username: $username,
+      ownerEmail: $ownerEmail,
       goalName: $goalName,
       completedYear: $completedYear,
       completedMonth: $completedMonth,
@@ -89,18 +79,19 @@ export const gqlCreateOrUpdateActivity = gql(`
 export const gqlCreateGoal = gql(`
   mutation CreateGoal(
     $goalName: String!,
-    $username: String!,
+    $ownerEmail: String!,
     $goalFrequency: String!,
     $requiredActivitiesPerPeriod: Int!
   ) {
     createGoal(
       name: $goalName,
-      username: $username,
+      ownerEmail: $ownerEmail,
       frequencyName: $goalFrequency,
       requiredActivitiesPerPeriod: $requiredActivitiesPerPeriod
     ){
       id
-      name
+      email
+      fullname
       goals {
         id
         name
@@ -124,10 +115,11 @@ export const gqlCreateGoal = gql(`
 `);
 
 export const gqlAddGoalToUser = gql(`
-  mutation addGoalToUser($ownerUsername: String!, $additionalUsername: String!, $goalName: String!) {
-      addGoalToUser(ownerUsername: $ownerUsername, additionalUsername: $additionalUsername, goalName: $goalName) {
+  mutation addGoalToUser($ownerEmail: String!, $additionalUserEmail: String!, $goalName: String!) {
+      addGoalToUser(ownerEmail: $ownerEmail, additionalUserEmail: $additionalUserEmail, goalName: $goalName) {
         id
-        name
+        email
+        fullname
         goals {
           id
           name
@@ -151,10 +143,11 @@ export const gqlAddGoalToUser = gql(`
 `);
 
 export const gqlDeleteGoal = gql(`
-  mutation DeleteGoal($goalName: String!, $username: String! ) {
-    deleteGoal(name: $goalName, username: $username) {
+  mutation DeleteGoal($goalName: String!, $ownerEmail: String! ) {
+    deleteGoal(name: $goalName, ownerEmail: $ownerEmail) {
       id
-      name
+      email
+      fullname
       goals {
         id
         name
@@ -178,8 +171,8 @@ export const gqlDeleteGoal = gql(`
 `);
 
 export const gqlRenameGoal = gql(`
-  mutation renameGoal($currentGoalName: String!, $newGoalName: String!, $username: String!) {
-      renameGoal(currentGoalName: $currentGoalName, newGoalName: $newGoalName, username: $username) {
+  mutation renameGoal($currentGoalName: String!, $newGoalName: String!, $ownerEmail: String!) {
+      renameGoal(currentGoalName: $currentGoalName, newGoalName: $newGoalName, ownerEmail: $ownerEmail) {
           id
           name
           activities {

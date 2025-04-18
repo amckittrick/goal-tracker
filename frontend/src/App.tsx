@@ -1,14 +1,16 @@
 import { useState } from 'react';
-import { useQuery } from '@apollo/client';
 
 import Encouragement from './Encouragement.tsx';
 import Header from './Header.tsx';
 import User from './User.tsx';
-import UserSelection from './UserSelection.tsx';
-import { gqlGetUsers } from './GQLQueries.tsx';
-import GQLLoading from './GQLLoading.tsx';
+import Login from './Login.tsx';
 
 import "bootstrap-icons/font/bootstrap-icons.css";
+
+export interface UserObject {
+  email: string,
+  fullname: string,
+}
 
 function App() {
   const setCookie = (name: string, value: string, days: number) => {
@@ -19,45 +21,40 @@ function App() {
 
   const getCookie = (name: string) => {
     const cookies = document.cookie.split("; ").find((row) => row.startsWith(`${name}`));
-
     return cookies ? cookies.split("=")[1] : null;
   };
 
-  const initialUsername = getCookie("username");
-
-  const [currentUsername, setCurrentUsername] = useState(initialUsername === null ? '' : initialUsername);
-
-  const updateUser = (username: string) => {
-    setCookie("username", username, 1);
-    setCurrentUsername(username);
+  const deleteCookie = (name: string) => {
+    if (getCookie(name)) {
+      document.cookie = `${name}=null; expires=Thu, 01 Jan 1970 00:0:00 UTC; path=/`
+    }
   };
 
-  const { loading, error, data } = useQuery(gqlGetUsers);
+  const initialUserEmail = getCookie("userEmail");
+  const initialUserFullname = getCookie("userFullname");
 
-  if (loading) {
-    return (
-      <div className="bg-dark">
-        <GQLLoading></GQLLoading>
-      </div>
-    )
-  }
-  if (error) return <p>Error : {error.message}</p>;
+  const initialUser = initialUserEmail && initialUserFullname ? { email: initialUserEmail, fullname: initialUserFullname } : null;
 
-  let usernames: string[] = [];
+  const [currentUser, setcurrentUser] = useState(initialUser);
 
-  if (data) {
-    usernames = data.users.map( user => user.name );
-  }
+  const updateUser = (user: UserObject | null) => {
+    if (user === null) {
+      deleteCookie("userEmail");
+      deleteCookie("userFullname");
+    } else {
+      setCookie("userEmail", user.email, 1);
+      setCookie("userFullname", user.fullname, 1);
+    }
+    setcurrentUser(user);
+  };
 
   return (
     <div className="bg-dark">
-      <Header
-        username={currentUsername}
-        updateUser={updateUser}>
+      <Header user={currentUser} updateUser={updateUser}>
       </Header>
-      {currentUsername === '' ?
-        (<UserSelection usernames={usernames} updateUser={updateUser}></UserSelection>) : 
-        (<User username={currentUsername}></User>)
+      {currentUser === null ?
+        (<Login updateUser={updateUser}></Login>) : 
+        (<User user={currentUser}></User>)
       }
       <Encouragement></Encouragement>
     </div>

@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { useQuery } from '@apollo/client';
+import { googleLogout } from '@react-oauth/google';
 
+import { UserObject } from './App.tsx';
 import ModalGeneralAdmin from './ModalGeneralAdmin.tsx';
-import { gqlGetUsers } from './GQLQueries.tsx';
 
 export default function Header(
-  { username, updateUser }: { username: string, updateUser: ( username: string) => void }
+  { user, updateUser}: { user: UserObject | null, updateUser: ( user: UserObject | null) => void}
 ) {
     const [modalGeneralAdminIsOpen, setModalGeneralAdminIsOpen] = useState(false);
   
@@ -17,14 +17,10 @@ export default function Header(
       setModalGeneralAdminIsOpen(false);
     };
 
-    const handleChangeUserClick = (username: string) => {
-      updateUser(username);
+    const logout = () => {
+      googleLogout();
+      updateUser(null);
     };
-    
-    const { loading, error, data } = useQuery(gqlGetUsers);
-  
-    if (loading) return null;
-    if (error) return <p>Error : {error.message}</p>;
   
     const today = new Date();
 
@@ -32,24 +28,18 @@ export default function Header(
       <nav className="navbar navbar-expand-lg border-bottom border-primary">
         <div className="container-fluid">
           <div className="navbar-nav flex-row">
-            <a className="navbar-brand p-0 mx-1 text-primary">{username} | {today.toDateString()}</a>
+            {
+              user === null ?
+              (<a className="navbar-brand p-0 mx-1 text-primary">{today.toDateString()}</a>) : 
+              (<a className="navbar-brand p-0 mx-1 text-primary">{user.fullname} | {today.toDateString()}</a>)
+            }
           </div>
           <ul className="navbar-nav flex-row flex-wrap ms-md-auto">
-            <li className="nav-item dropdown mx-1">
-              <a className="nav-link dropdown-toggle text-primary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                User
-              </a>
-              <ul className="dropdown-menu dropdown-menu-end">
-                {
-                  data?.users.map((user) =>
-                    <li key={user.name}>
-                      <a type="button" className="dropdown-item" onClick={() => handleChangeUserClick(user.name)}>{user.name}</a>
-                    </li>
-                )}
-              </ul>
-            </li>
             <i className="btn bi bi-gear mx-1 text-primary" onClick={openModalGeneralAdmin}></i>
           </ul>
+          {
+            user && (<button className="btn text-primary" onClick={logout}>Logout</button>)
+          }
         </div>
         {modalGeneralAdminIsOpen && <ModalGeneralAdmin closeModal={closeModalGeneralAdmin}></ModalGeneralAdmin>}
       </nav>

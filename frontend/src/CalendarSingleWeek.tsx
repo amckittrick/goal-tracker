@@ -28,8 +28,8 @@ function GetDateActivityStatus(year: number, month: number, day: number, activit
 }
 
 export default function CalendarSingleWeek(
-  {year, month, dateStart, dateEnd, activities, requiredActivitiesPerPeriod, goalName, username}:
-  {year: number, month: number, dateStart: number, dateEnd: number, activities: ActivityType[], requiredActivitiesPerPeriod: number, goalName: string, username: string}
+  {year, month, dateStart, dateEnd, activities, requiredActivitiesPerPeriod, goalName, currentUserEmail}:
+  {year: number, month: number, dateStart: number, dateEnd: number, activities: ActivityType[], requiredActivitiesPerPeriod: number, goalName: string, currentUserEmail: string}
 ) {
   const [CreateOrUpdateActivity, CreateOrUpdateActivityStatus] = useMutation(gqlCreateOrUpdateActivity);
 
@@ -63,7 +63,7 @@ export default function CalendarSingleWeek(
                   CreateOrUpdateActivity(
                     {
                       variables: {
-                          username: username,
+                          ownerEmail: currentUserEmail,
                           goalName: goalName,
                           completedYear: year,
                           completedMonth: month + 1,

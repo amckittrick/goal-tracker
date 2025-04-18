@@ -4,7 +4,7 @@ import React from 'react';
 import { gqlCreateGoal, gqlGetGoalFrequencies } from './GQLQueries';
 
 export default function ModalCreateGoal(
-  { username, closeModal}: { username: string, closeModal: () => void }
+  { currentUserEmail, closeModal}: { currentUserEmail: string, closeModal: () => void }
 ) {
   const [goalName, setGoalName] = React.useState("");
   const [goalFrequency, setGoalFrequency] = React.useState("");
@@ -35,7 +35,7 @@ export default function ModalCreateGoal(
                     {
                       variables: {
                         goalName: goalName,
-                        username: username,
+                        ownerEmail: currentUserEmail,
                         goalFrequency: goalFrequency,
                         requiredActivitiesPerPeriod: requiredActivitiesPerPeriod
                       }

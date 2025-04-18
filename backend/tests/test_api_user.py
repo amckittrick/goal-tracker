@@ -6,10 +6,10 @@ from backend.api import schema
 
 
 QUERY_GET_USER = """
-    query getUser($name: String!) {
-        user(name: $name) {
+    query getUser($email: String!) {
+        user(email: $email) {
             id
-            name
+            email
             fullname
             goals {
                 id
@@ -20,10 +20,10 @@ QUERY_GET_USER = """
 """
 
 MUTATION_CREATE_USER = """
-    mutation createUser($name: String!, $fullname: String!) {
-        createUser(name: $name, fullname: $fullname) {
+    mutation createUser($email: String!, $fullname: String!) {
+        createUser(email: $email, fullname: $fullname) {
             id
-            name
+            email
             fullname
         }
     }
@@ -34,18 +34,18 @@ MUTATION_CREATE_USER = """
 async def test_create_user_nominal() -> None:
     """Test nominal creation of a user."""
     create_user_result = await schema.execute(
-        MUTATION_CREATE_USER, variable_values={"name": "fake-user", "fullname": "Fake User"}
+        MUTATION_CREATE_USER, variable_values={"email": "fake.user@fake.com", "fullname": "Fake User"}
     )
     assert create_user_result.errors is None
     assert create_user_result.data is not None
-    assert create_user_result.data["createUser"] == {"id": 1, "name": "fake-user", "fullname": "Fake User"}
+    assert create_user_result.data["createUser"] == {"id": 1, "email": "fake.user@fake.com", "fullname": "Fake User"}
 
-    get_user_result = await schema.execute(QUERY_GET_USER, variable_values={"name": "fake-user"})
+    get_user_result = await schema.execute(QUERY_GET_USER, variable_values={"email": "fake.user@fake.com"})
     assert get_user_result.errors is None
     assert get_user_result.data is not None
     assert get_user_result.data["user"] == {
         "id": 1,
-        "name": "fake-user",
+        "email": "fake.user@fake.com",
         "fullname": "Fake User",
         "goals": [],
     }
@@ -54,7 +54,7 @@ async def test_create_user_nominal() -> None:
     query getUsers {
         users {
             id
-            name
+            email
             fullname
             goals {
                 id
@@ -69,7 +69,7 @@ async def test_create_user_nominal() -> None:
     assert get_users_result.data["users"] == [
         {
             "id": 1,
-            "name": "fake-user",
+            "email": "fake.user@fake.com",
             "fullname": "Fake User",
             "goals": [],
         },

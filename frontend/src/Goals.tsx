@@ -5,12 +5,12 @@ import { gqlGetUser } from './GQLQueries.tsx';
 
 export default function Goals(
   {
-    username,
+    currentUserEmail,
     openModalEditGoal,
     openModalCreateGoal
   }:
   {
-    username: string,
+    currentUserEmail: string,
     openModalEditGoal: (data: { goalName: string } ) => void,
     openModalCreateGoal: () => void
   }
@@ -21,7 +21,7 @@ export default function Goals(
   };
 
   const { loading, error, data } = useQuery(gqlGetUser, {
-    variables: { username }
+    variables: { email: currentUserEmail }
   });
 
   if (loading) return null;
@@ -41,7 +41,7 @@ export default function Goals(
               <Goal
                 goal={goal}
                 goalFrequency={goal.goalFrequency.name}
-                username={username}
+                currentUserEmail={currentUserEmail}
                 openModalEditGoal={openModalEditGoal}>
               </Goal>
             </div>

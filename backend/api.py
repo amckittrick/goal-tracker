@@ -25,15 +25,15 @@ class UserType:
     """Maps to a User in the DB."""
 
     id: int
-    name: str
-    fullname: Optional[str]
+    email: str
+    fullname: str
     goals: List["GoalType"] = field(default_factory=list)  # pylint: disable=invalid-field-call
 
 
 def convert_user(model: UserModel) -> UserType:
     """Convert a UserModel to a UserType."""
     goal_types = [convert_goal(goal_model) for goal_model in model.goals]
-    return UserType(id=model.id, name=model.name, fullname=model.fullname, goals=goal_types)
+    return UserType(id=model.id, email=model.email, fullname=model.fullname, goals=goal_types)
 
 
 @strawberry.type
@@ -90,10 +90,10 @@ def convert_encouragement(model: EncouragementModel) -> EncouragementType:
 
 
 def get_activity(
-    db_session: Session, username: str, goal_name: str, year: int, month: int, day: int
+    db_session: Session, email: str, goal_name: str, year: int, month: int, day: int
 ) -> Tuple[GoalModel, ActivityModel]:
     """Get an activity on a specified date for a user + goal."""
-    user = db_session.query(UserModel).where(UserModel.name == username).one()
+    user = db_session.query(UserModel).where(UserModel.email == email).one()
     for goal in user.goals:
         if goal.name == goal_name:
             for activity in goal.activities:
@@ -144,10 +144,10 @@ class Query:
         return [convert_user(user) for user in users]
 
     @strawberry.field
-    async def user(self, name: str) -> UserType:
+    async def user(self, email: str) -> UserType:
         """Return a single user."""
         db = get_db()
-        user = db.query(UserModel).where(UserModel.name == name).one()
+        user = db.query(UserModel).where(UserModel.email == email).one()
         return convert_user(user)
 
     @strawberry.field
@@ -169,10 +169,10 @@ class Mutation:
     """GraphQL Mutations"""
 
     @strawberry.mutation
-    async def create_user(self, name: str, fullname: str) -> UserType:
+    async def create_user(self, email: str, fullname: str) -> UserType:
         """Create a new user."""
         db = get_db()
-        user = UserModel(name=name, fullname=fullname, goals=[])
+        user = UserModel(email=email, fullname=fullname, goals=[])
         db.add(user)
 
         db.commit()
@@ -181,11 +181,11 @@ class Mutation:
 
     @strawberry.mutation
     async def create_goal(
-        self, name: str, username: str, frequency_name: str, required_activities_per_period: Optional[int] = 1
+        self, name: str, owner_email: str, frequency_name: str, required_activities_per_period: Optional[int] = 1
     ) -> UserType:
         """Create a new goal."""
         db = get_db()
-        owner = db.query(UserModel).where(UserModel.name == username).one()
+        owner = db.query(UserModel).where(UserModel.email == owner_email).one()
         frequency = db.query(GoalFrequencyModel).where(GoalFrequencyModel.name == frequency_name).one()
 
         goal = GoalModel(
@@ -204,11 +204,11 @@ class Mutation:
         return convert_user(owner)
 
     @strawberry.mutation
-    async def rename_goal(self, current_goal_name: str, new_goal_name: str, username: str) -> GoalType:
+    async def rename_goal(self, current_goal_name: str, new_goal_name: str, owner_email: str) -> GoalType:
         """Rename a goal."""
         db = get_db()
 
-        user = db.query(UserModel).where(UserModel.name == username).one()
+        user = db.query(UserModel).where(UserModel.email == owner_email).one()
         for goal in user.goals:
             if goal.name == current_goal_name:
                 goal.name = new_goal_name
@@ -216,14 +216,14 @@ class Mutation:
                 db.commit()
                 db.refresh(goal)
                 return convert_goal(goal)
-        raise InvalidAPIArgumentException(f"No goal found with name '{current_goal_name}' for user '{username}'")
+        raise InvalidAPIArgumentException(f"No goal found with name '{current_goal_name}' for user '{owner_email}'")
 
     @strawberry.mutation
-    async def add_goal_to_user(self, owner_username: str, additional_username: str, goal_name: str) -> UserType:
+    async def add_goal_to_user(self, owner_email: str, additional_user_email: str, goal_name: str) -> UserType:
         """Add a goal that's owned by one user to now be shared by an additional user."""
         db = get_db()
-        owner = db.query(UserModel).where(UserModel.name == owner_username).one()
-        additional_user = db.query(UserModel).where(UserModel.name == additional_username).one()
+        owner = db.query(UserModel).where(UserModel.email == owner_email).one()
+        additional_user = db.query(UserModel).where(UserModel.email == additional_user_email).one()
         for goal in owner.goals:
             if goal.name == goal_name:
                 additional_user.goals.append(goal)
@@ -231,13 +231,13 @@ class Mutation:
                 db.commit()
                 db.refresh(owner)
                 return convert_user(owner)
-        raise InvalidAPIArgumentException(f"No goal found with name '{goal_name}' for user '{owner_username}'")
+        raise InvalidAPIArgumentException(f"No goal found with name '{goal_name}' for user '{owner_email}'")
 
     @strawberry.mutation
-    async def delete_goal(self, name: str, username: str) -> UserType:
+    async def delete_goal(self, name: str, owner_email: str) -> UserType:
         """Delete a goal."""
         db = get_db()
-        user = db.query(UserModel).where(UserModel.name == username).one()
+        user = db.query(UserModel).where(UserModel.email == owner_email).one()
         goal_to_delete = None
         for goal in user.goals:
             if goal.name == name:
@@ -245,7 +245,7 @@ class Mutation:
                 db.query(ActivityModel).filter(ActivityModel.goal_id == goal.id).delete()
                 break
         if goal_to_delete is None:
-            raise InvalidAPIArgumentException(f"No goal found with name '{name}' on user '{username}' to delete.")
+            raise InvalidAPIArgumentException(f"No goal found with name '{name}' on user '{owner_email}' to delete.")
         users_needing_deletion = db.query(UserModel).filter(UserModel.goals.any(GoalModel.name == name)).all()
         for user_needing_deletion in users_needing_deletion:
             user_needing_deletion.goals.remove(goal_to_delete)
@@ -277,19 +277,25 @@ class Mutation:
 
     @strawberry.mutation
     async def create_or_update_activity(
-        self, username: str, goal_name: str, completed_year: int, completed_month: int, completed_day: int, count: int
+        self,
+        owner_email: str,
+        goal_name: str,
+        completed_year: int,
+        completed_month: int,
+        completed_day: int,
+        count: int,
     ) -> GoalType:
         """Create an Activity"""
         db = get_db()
         try:
-            goal, activity = get_activity(db, username, goal_name, completed_year, completed_month, completed_day)
+            goal, activity = get_activity(db, owner_email, goal_name, completed_year, completed_month, completed_day)
             activity.count = count
             db.commit()
             db.refresh(activity)
             db.refresh(goal)
             return convert_goal(goal)
         except InvalidAPIArgumentException:
-            user = db.query(UserModel).where(UserModel.name == username).one()
+            user = db.query(UserModel).where(UserModel.email == owner_email).one()
             for goal in user.goals:
                 if goal.name == goal_name:
                     activity = ActivityModel(
@@ -303,7 +309,7 @@ class Mutation:
                     db.commit()
                     db.refresh(goal)
                     return convert_goal(goal)
-        raise InvalidAPIArgumentException(f"No goal found with name '{goal_name}' for user '{username}'")
+        raise InvalidAPIArgumentException(f"No goal found with name '{goal_name}' for user '{owner_email}'")
 
 
 schema = Schema(query=Query, mutation=Mutation)

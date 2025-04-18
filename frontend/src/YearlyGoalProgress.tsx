@@ -2,7 +2,7 @@ import { GoalType } from './__generated__/graphql.ts';
 
 import ActivityCheckbox from './ActivityCheckbox.tsx';
 
-export default function YearlyGoalProgress({ goal, username }: { goal: GoalType, username: string }) {
+export default function YearlyGoalProgress({ goal, currentUserEmail }: { goal: GoalType, currentUserEmail: string }) {
   interface YearEntry {
     symbol: string;
     date: Date;
@@ -32,7 +32,7 @@ export default function YearlyGoalProgress({ goal, username }: { goal: GoalType,
           <ActivityCheckbox
             date={yearEntry.date}
             goalName={goal.name}
-            username={username}
+            currentUserEmail={currentUserEmail}
             numberOfActivities={yearEntry.numberOfActivities}
             requiredActivitiesPerPeriod={goal.requiredActivitiesPerPeriod}
             defaultSymbol={yearEntry.symbol}>

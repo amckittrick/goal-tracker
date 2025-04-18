@@ -2,7 +2,7 @@
 """Interface to the database."""
 
 import os
-from typing import Callable, List, Optional
+from typing import Callable, List
 
 from dotenv import load_dotenv
 from sqlalchemy import Column, create_engine, Engine, ForeignKey, String, Table, UniqueConstraint
@@ -76,8 +76,8 @@ class User(Base):
     __tablename__ = "user_account"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(30), unique=True)
-    fullname: Mapped[Optional[str]]
+    email: Mapped[str] = mapped_column(String(), unique=True)
+    fullname: Mapped[str] = mapped_column(String())
 
     goals: Mapped[List["Goal"]] = relationship(secondary=permission_table, back_populates="users")
 
