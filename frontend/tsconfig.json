@@ -8,6 +8,7 @@
     "lib": [
       "ES2021.String"
     ],
-    "moduleResolution": "Node"
+    "moduleResolution": "Node",
+    "types": ["@vitest/browser/providers/playwright"],
   },
 }

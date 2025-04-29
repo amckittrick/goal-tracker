@@ -1,6 +1,5 @@
 import { useState } from 'react';
 
-import Encouragement from './Encouragement.tsx';
 import Header from './Header.tsx';
 import User from './User.tsx';
 import Login from './Login.tsx';
@@ -56,7 +55,6 @@ function App() {
         (<Login updateUser={updateUser}></Login>) : 
         (<User user={currentUser}></User>)
       }
-      <Encouragement></Encouragement>
     </div>
   )
 }

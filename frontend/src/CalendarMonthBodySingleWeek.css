@@ -1,0 +1,21 @@
+.CalendarMonthBodySingleWeek {
+  .dot {
+    height: 10px !important;
+    width: 10px !important;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .date-number {
+    padding: 0.25em;
+  }
+
+  .today {
+    border-radius: 10px;
+    padding: 0.25em;
+    --bs-text-opacity: 1;
+    --bs-bg-opacity: 1;
+    color: rgba(var(--bs-dark-rgb), var(--bs-text-opacity)) !important;
+    background-color: rgba(var(--bs-secondary-rgb), var(--bs-bg-opacity, 1)) !important;
+  }
+}

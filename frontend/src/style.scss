@@ -16,22 +16,24 @@ $body-bg: $dark;
 }
 
 .form-control {
-  background-color: $secondary;
+  background-color: $primary;
   color: $dark;
-  border: $primary solid 2px;
+  border: $secondary solid 2px;
 }
 
 .form-control:focus {
-  background-color: $secondary;
+  background-color: $primary;
   color: $dark;
 }
 
 .form-select {
-  background-color: $secondary;
+  background-color: $primary;
   color: $dark;
+  border: $secondary solid 1px;
 }
 
 .form-select:focus {
-  background-color: $secondary;
+  background-color: $primary;
   color: $dark;
+  border: $secondary solid 1px;
 }

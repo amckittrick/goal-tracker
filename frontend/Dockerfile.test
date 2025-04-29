@@ -1,4 +1,6 @@
-FROM node:18-alpine
+# Use a Node.js base image with Playwright
+FROM mcr.microsoft.com/playwright:v1.37.0-focal
 WORKDIR /usr/src/app/frontend
 COPY ./frontend/package*.json ./
 RUN npm install
+RUN npx playwright install

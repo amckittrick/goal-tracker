@@ -1,21 +1,30 @@
-import { useMutation, useQuery } from '@apollo/client';
+import { useMutation } from '@apollo/client';
 import React from 'react';
 
-import { gqlCreateGoal, gqlGetGoalFrequencies } from './GQLQueries';
+import { GoalFrequencyType } from './__generated__/graphql';
+
+import { gqlCreateGoal, gqlGetUserStatus } from './GQLQueries';
 
 export default function ModalCreateGoal(
   { currentUserEmail, closeModal}: { currentUserEmail: string, closeModal: () => void }
 ) {
   const [goalName, setGoalName] = React.useState("");
-  const [goalFrequency, setGoalFrequency] = React.useState("");
+  const [goalFrequency, setGoalFrequency] = React.useState(GoalFrequencyType.Daily);
   const [requiredActivitiesPerPeriod, setRequiredActivitiesPerPeriod] = React.useState(1);
 
-  const [createGoal, createGoalStatus] = useMutation(gqlCreateGoal);
-  const getGoalFrequencesStatus = useQuery(gqlGetGoalFrequencies);
+  const [createGoal, createGoalStatus] = useMutation(
+    gqlCreateGoal,
+    {
+      refetchQueries: [
+        gqlGetUserStatus
+      ]
+    }
+  );
       
-  if (createGoalStatus.loading || getGoalFrequencesStatus.loading ) return <p>Submitting...</p>;
+  if (createGoalStatus.loading ) return <p>Submitting...</p>;
   if (createGoalStatus.error) return <p>Submission error : {createGoalStatus.error.message}</p>;
-  if (getGoalFrequencesStatus.error) return <p>Query error : {getGoalFrequencesStatus.error.message}</p>;
+
+  const goalFrequencyOptions: string[] = Object.values(GoalFrequencyType);
 
   return (
     <div>
@@ -36,13 +45,13 @@ export default function ModalCreateGoal(
                       variables: {
                         goalName: goalName,
                         ownerEmail: currentUserEmail,
-                        goalFrequency: goalFrequency,
+                        frequency: goalFrequency,
                         requiredActivitiesPerPeriod: requiredActivitiesPerPeriod
                       }
                     }
                   );
                   setGoalName('');
-                  setGoalFrequency('');
+                  setGoalFrequency(GoalFrequencyType.Daily);
                   closeModal();
                 }}>
                 <div className="mb-3">
@@ -62,12 +71,12 @@ export default function ModalCreateGoal(
                     className="form-select"
                     aria-label="Goal Frequency"
                     onChange={(event) => {
-                      setGoalFrequency(event.target.value);
+                      setGoalFrequency(event.target.value as GoalFrequencyType);
                     }}>
                     <option selected>Select Goal Frequency</option>
                     {
-                      getGoalFrequencesStatus.data?.goalFrequencies.map((goalFrequency) =>
-                        <option value={goalFrequency.name}>{goalFrequency.name}</option>
+                      goalFrequencyOptions.map((goalFrequency) =>
+                        <option value={goalFrequency}>{goalFrequency}</option>
                     )}
                   </select>
                   <label

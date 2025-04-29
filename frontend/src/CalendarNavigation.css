@@ -1,0 +1,9 @@
+.CalendarNavigation {
+    .disabled-no-border {
+        color: var(--bs-btn-disabled-color);
+        pointer-events: none;
+        background-color: var(--bs-btn-disabled-bg);
+        border: 0px solid !important;
+        opacity: var(--bs-btn-disabled-opacity);
+    }
+}

@@ -1,10 +1,11 @@
 """Test functionality related to Activity."""
 
+from datetime import datetime
+
 import pytest
 
-from backend.api import schema
+from backend.api import schema, GoalFrequencyType
 from backend.tests.test_api_goal import MUTATION_CREATE_GOAL
-from backend.tests.test_api_goal_frequency import MUTATION_CREATE_GOAL_FREQUENCY
 from backend.tests.test_api_user import MUTATION_CREATE_USER
 
 
@@ -12,25 +13,31 @@ MUTATION_CREATE_OR_UPDATE_ACTIVITY = """
     mutation createOrUpdateActivity(
         $ownerEmail: String!,
         $goalName: String!,
-        $completedYear: Int!,
-        $completedMonth: Int!,
-        $completedDay: Int!,
+        $dateOfActivity: DateTime!,
         $count: Int!
     ) {
         createOrUpdateActivity(
             ownerEmail: $ownerEmail,
             goalName: $goalName,
-            completedYear: $completedYear,
-            completedMonth: $completedMonth,
-            completedDay: $completedDay,
+            dateOfActivity: $dateOfActivity,
             count: $count
         ) {
             id
             name
-            activities {
-                completedYear
-                completedMonth
-                completedDay
+            dailyActivities {
+                year
+                month
+                day
+                count
+            }
+            weeklyActivities {
+                year
+                month
+                week
+                count
+            }
+            yearlyActivities {
+                year
                 count
             }
         }
@@ -43,14 +50,12 @@ async def test_create_activity_nominal() -> None:
     """Test nominal creation of an activity."""
     await schema.execute(MUTATION_CREATE_USER, variable_values={"email": "fake.user@fake.com", "fullname": "Fake User"})
     await schema.execute(
-        MUTATION_CREATE_GOAL_FREQUENCY, variable_values={"name": "fake-goal-frequency", "numberOfDays": 1}
-    )
-    await schema.execute(
         MUTATION_CREATE_GOAL,
         variable_values={
             "name": "fake-goal",
-            "frequencyName": "fake-goal-frequency",
             "ownerEmail": "fake.user@fake.com",
+            "frequency": GoalFrequencyType.DAILY.name,
+            "requiredActivitiesPerPeriod": 1,
         },
     )
 
@@ -59,9 +64,7 @@ async def test_create_activity_nominal() -> None:
         variable_values={
             "ownerEmail": "fake.user@fake.com",
             "goalName": "fake-goal",
-            "completedYear": 1970,
-            "completedMonth": 1,
-            "completedDay": 1,
+            "dateOfActivity": datetime(1970, 1, 1).isoformat(),
             "count": 1,
         },
     )
@@ -70,14 +73,16 @@ async def test_create_activity_nominal() -> None:
     assert create_activity_result.data["createOrUpdateActivity"] == {
         "id": 1,
         "name": "fake-goal",
-        "activities": [
+        "dailyActivities": [
             {
-                "completedYear": 1970,
-                "completedMonth": 1,
-                "completedDay": 1,
+                "year": 1970,
+                "month": 1,
+                "day": 1,
                 "count": 1,
             }
         ],
+        "weeklyActivities": [],
+        "yearlyActivities": [],
     }
 
     update_activity_result = await schema.execute(
@@ -85,9 +90,7 @@ async def test_create_activity_nominal() -> None:
         variable_values={
             "ownerEmail": "fake.user@fake.com",
             "goalName": "fake-goal",
-            "completedYear": 1970,
-            "completedMonth": 1,
-            "completedDay": 1,
+            "dateOfActivity": datetime(1970, 1, 1).isoformat(),
             "count": 2,
         },
     )
@@ -96,14 +99,16 @@ async def test_create_activity_nominal() -> None:
     assert update_activity_result.data["createOrUpdateActivity"] == {
         "id": 1,
         "name": "fake-goal",
-        "activities": [
+        "dailyActivities": [
             {
-                "completedYear": 1970,
-                "completedMonth": 1,
-                "completedDay": 1,
+                "year": 1970,
+                "month": 1,
+                "day": 1,
                 "count": 2,
             }
         ],
+        "weeklyActivities": [],
+        "yearlyActivities": [],
     }
 
 
@@ -117,9 +122,7 @@ async def test_create_activity_missing_goal() -> None:
         variable_values={
             "ownerEmail": "fake.user@fake.com",
             "goalName": "fake-goal",
-            "completedYear": 1970,
-            "completedMonth": 1,
-            "completedDay": 1,
+            "dateOfActivity": datetime(1970, 1, 1).isoformat(),
             "count": 1,
         },
     )

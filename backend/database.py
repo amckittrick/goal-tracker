@@ -1,14 +1,23 @@
 # pylint: disable=too-few-public-methods
 """Interface to the database."""
 
+import enum
 import os
 from typing import Callable, List
 
 from dotenv import load_dotenv
-from sqlalchemy import Column, create_engine, Engine, ForeignKey, String, Table, UniqueConstraint
+from sqlalchemy import CheckConstraint, Column, create_engine, Engine, ForeignKey, String, Table, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, sessionmaker, Session
 
 from backend.exceptions import GoalTrackerException
+
+
+class GoalFrequency(enum.Enum):
+    """Potential goal frequencies."""
+
+    DAILY = "daily"
+    WEEKLY = "weekly"
+    YEARLY = "yearly"
 
 
 class FunctionWithSessionLocalAttr:  # pylint: disable=too-few-public-methods
@@ -74,6 +83,10 @@ class User(Base):
     """A user."""
 
     __tablename__ = "user_account"
+    __table_args__ = (
+        CheckConstraint("length(email) > 0", name="non_empty_email"),
+        CheckConstraint("length(fullname) > 0", name="non_empty_fullname"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(String(), unique=True)
@@ -86,38 +99,56 @@ class Goal(Base):
     """A single goal tied to a user."""
 
     __tablename__ = "goal"
+    __table_args__ = (CheckConstraint("length(name) > 0", name="non_empty_goal_name"),)
+
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(30))
+    name: Mapped[str] = mapped_column(String(32), unique=True, nullable=False)
     required_activities_per_period: Mapped[int] = mapped_column(default=1)
 
-    goal_frequency_id: Mapped[int] = mapped_column(ForeignKey("goal_frequency.id"))
-    goal_frequency: Mapped["GoalFrequency"] = relationship()
+    frequency: Mapped[GoalFrequency]
 
-    activities: Mapped[List["Activity"]] = relationship()
+    daily_activities: Mapped[List["DailyActivity"]] = relationship()
+    weekly_activities: Mapped[List["WeeklyActivity"]] = relationship()
+    yearly_activities: Mapped[List["YearlyActivity"]] = relationship()
 
     users: Mapped[List["User"]] = relationship(secondary=permission_table, back_populates="goals")
 
 
-class GoalFrequency(Base):
-    """A type of goal based on it's frequency (eg daily, weekly, etc)."""
+class DailyActivity(Base):
+    """A single activity tied to a daily goal."""
 
-    __tablename__ = "goal_frequency"
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(30), unique=True)
-    number_of_days: Mapped[int]
-
-
-class Activity(Base):
-    """A single activity tied to a single goal."""
-
-    __tablename__ = "activity"
+    __tablename__ = "daily_activity"
     id: Mapped[int] = mapped_column(primary_key=True)
     goal_id: Mapped[int] = mapped_column(ForeignKey("goal.id"))
-    completed_year: Mapped[int] = mapped_column()
-    completed_month: Mapped[int] = mapped_column()
-    completed_day: Mapped[int] = mapped_column()
+    year: Mapped[int] = mapped_column()
+    month: Mapped[int] = mapped_column()
+    day: Mapped[int] = mapped_column()
     count: Mapped[int] = mapped_column()
-    UniqueConstraint("completed_year", "completed_month", "completed_day")
+    UniqueConstraint("goal_id", "year", "month", "day")
+
+
+class WeeklyActivity(Base):
+    """A single activity tied to a weekly goal."""
+
+    __tablename__ = "weekly_activity"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    goal_id: Mapped[int] = mapped_column(ForeignKey("goal.id"))
+    year: Mapped[int] = mapped_column()
+    month: Mapped[int] = mapped_column()
+    week: Mapped[int] = mapped_column()
+    count: Mapped[int] = mapped_column()
+    UniqueConstraint("goal_id", "year", "month", "week")
+
+
+class YearlyActivity(Base):
+    """A single activity tied to a yearly goal."""
+
+    __tablename__ = "yearly_activity"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    goal_id: Mapped[int] = mapped_column(ForeignKey("goal.id"))
+    year: Mapped[int] = mapped_column()
+    count: Mapped[int] = mapped_column()
+    UniqueConstraint("goal_id", "year")
 
 
 class Encouragement(Base):

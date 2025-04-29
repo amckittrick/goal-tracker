@@ -1,6 +1,6 @@
 backend-test:
 	rm -rf ./backend/temp
-	mkdir ./backend/temp
+	mkdir -p ./backend/temp.postgres
 	docker compose --file compose.test.yaml up --build backend-test postgres --abort-on-container-exit --exit-code-from backend-test
 	rm -rf ./backend/temp
 

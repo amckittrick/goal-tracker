@@ -1,23 +1,32 @@
 import { useMutation } from '@apollo/client';
 import React from 'react';
 
-import { gqlRenameGoal } from './GQLQueries';
+import { gqlRenameGoal, gqlGetUserStatus } from './GQLQueries';
 
 export default function ModalEditGoalRenameGoal(
-  { currentUserEmail, data, closeModal}: { currentUserEmail: string, data: { goalName: string }, closeModal: () => void }
+  { currentUserEmail, goalName, closeModal}: { currentUserEmail: string, goalName: string | null, closeModal: () => void }
 ) {
-  const [renameGoal, { loading, error }] = useMutation(gqlRenameGoal);
+  const [renameGoal, { loading, error }] = useMutation(
+    gqlRenameGoal,
+    {
+      refetchQueries: [
+        gqlGetUserStatus
+      ]
+    }
+  );
 
   const [newGoalName, setNewGoalName] = React.useState('');
 
   if (loading) return <p>Submitting...</p>;
   if (error) return <p>Submission error : {error.message}</p>;
 
+  if (goalName === null) return null;
+
   return (
     <form
       onSubmit={event => {
         event.preventDefault();
-        renameGoal({ variables:{ currentGoalName: data.goalName, ownerEmail: currentUserEmail, newGoalName: newGoalName}});
+        renameGoal({ variables:{ currentGoalName: goalName, ownerEmail: currentUserEmail, newGoalName: newGoalName}});
         closeModal();
       }}>
       <div className="mb-3">

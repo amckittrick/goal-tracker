@@ -2,14 +2,23 @@
 
 import pytest
 
-from backend.api import schema
+from backend.api import schema, GoalFrequencyType
 from backend.tests.test_api_user import MUTATION_CREATE_USER, QUERY_GET_USER
-from backend.tests.test_api_goal_frequency import MUTATION_CREATE_GOAL_FREQUENCY
 
 
 MUTATION_CREATE_GOAL = """
-    mutation createGoal($name: String!, $frequencyName: String!, $ownerEmail: String!) {
-        createGoal(name: $name, frequencyName: $frequencyName, ownerEmail: $ownerEmail) {
+    mutation createGoal(
+        $name: String!,
+        $ownerEmail: String!,
+        $frequency: GoalFrequencyType!,
+        $requiredActivitiesPerPeriod: Int!
+    ) {
+        createGoal(
+            name: $name,
+            ownerEmail: $ownerEmail,
+            frequency: $frequency,
+            requiredActivitiesPerPeriod: $requiredActivitiesPerPeriod
+        ) {
             id
             email
             fullname
@@ -37,11 +46,6 @@ MUTATION_RENAME_GOAL = """
 mutation renameGoal($currentGoalName: String!, $newGoalName: String!, $ownerEmail: String!) {
     renameGoal(currentGoalName: $currentGoalName, newGoalName: $newGoalName, ownerEmail: $ownerEmail) {
         name
-        activities {
-            completedYear
-            completedMonth
-            completedDay
-        }
     }
 }
 """
@@ -62,15 +66,15 @@ MUTATION_ADD_GOAL_TO_USER = """
 async def test_goal_lifecycle() -> None:
     """Test renaming a goal."""
     await schema.execute(MUTATION_CREATE_USER, variable_values={"email": "fake.user@fake.com", "fullname": "Fake User"})
-    await schema.execute(MUTATION_CREATE_GOAL_FREQUENCY, variable_values={"name": "Daily", "numberOfDays": 1})
 
     ##### Create a goal and verify it exists
     create_goal_result = await schema.execute(
         MUTATION_CREATE_GOAL,
         variable_values={
             "name": "Fake Goal",
-            "frequencyName": "Daily",
             "ownerEmail": "fake.user@fake.com",
+            "frequency": GoalFrequencyType.DAILY.name,
+            "requiredActivitiesPerPeriod": 1,
         },
     )
     assert create_goal_result.errors is None
@@ -98,10 +102,7 @@ async def test_goal_lifecycle() -> None:
     )
     assert mutation_rename_goal_result.errors is None
     assert mutation_rename_goal_result.data is not None
-    assert mutation_rename_goal_result.data["renameGoal"] == {
-        "name": "Fake Goal With A New Name",
-        "activities": [],
-    }
+    assert mutation_rename_goal_result.data["renameGoal"] == {"name": "Fake Goal With A New Name"}
 
     ##### Now delete that goal
     mutation_delete_goal_response = await schema.execute(
@@ -124,24 +125,9 @@ async def test_create_goal_no_user() -> None:
         MUTATION_CREATE_GOAL,
         variable_values={
             "name": "Fake Goal",
-            "frequencyName": "Daily",
             "ownerEmail": "fake.user@fake.com",
-        },
-    )
-    assert create_goal_result.errors is not None
-    assert create_goal_result.errors[0].message == "No row was found when one was required"
-
-
-@pytest.mark.asyncio
-async def test_create_goal_no_goal_frequency() -> None:
-    """Test an exception is raised when attempting to create a goal for a frequency that does not exist."""
-    await schema.execute(MUTATION_CREATE_USER, variable_values={"email": "fake.user@fake.com", "fullname": "Fake User"})
-    create_goal_result = await schema.execute(
-        MUTATION_CREATE_GOAL,
-        variable_values={
-            "name": "Fake Goal",
-            "frequencyName": "Daily",
-            "ownerEmail": "fake.user@fake.com",
+            "frequency": GoalFrequencyType.DAILY.name,
+            "requiredActivitiesPerPeriod": 1,
         },
     )
     assert create_goal_result.errors is not None
@@ -212,10 +198,14 @@ async def test_add_goal_to_user_nominal() -> None:
     await schema.execute(
         MUTATION_CREATE_USER, variable_values={"email": "fake.user.2@fake.com", "fullname": "Fake User 2"}
     )
-    await schema.execute(MUTATION_CREATE_GOAL_FREQUENCY, variable_values={"name": "Daily", "numberOfDays": 1})
     await schema.execute(
         MUTATION_CREATE_GOAL,
-        variable_values={"name": "Fake Goal", "frequencyName": "Daily", "ownerEmail": "fake.user.1@fake.com"},
+        variable_values={
+            "name": "Fake Goal",
+            "ownerEmail": "fake.user.1@fake.com",
+            "frequency": GoalFrequencyType.DAILY.name,
+            "requiredActivitiesPerPeriod": 1,
+        },
     )
 
     add_goal_to_user_result = await schema.execute(
