@@ -18,14 +18,14 @@ spec:
         ports:
         - containerPort: 8000
         env:
-        - name: DB_USER
+        - name: POSTGRES_USER
           value: goal_tracker_production
-        - name: DB_KEY
+        - name: POSTGRES_PASSWORD
           valueFrom:
             secretKeyRef:
               name: secret-postgresql-production
               key: password
         - name: DB_HOST
           value: 10.42.42.10
-        - name: DB_NAME
+        - name: POSTGRES_DB
           value: goal_tracker_production

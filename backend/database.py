@@ -32,7 +32,7 @@ init_db: FunctionWithSessionLocalAttr
 
 def get_db_connection_str() -> str:
     """Return a string representing the connection to the database."""
-    return f"postgresql+psycopg2://{os.environ['DB_USER']}:{os.environ['DB_KEY']}@{os.environ['DB_HOST']}/{os.environ['DB_NAME']}"  # pylint: disable=line-too-long
+    return f"postgresql+psycopg2://{os.environ['POSTGRES_USER']}:{os.environ['POSTGRES_PASSWORD']}@{os.environ['DB_HOST']}/{os.environ['POSTGRES_DB']}"  # pylint: disable=line-too-long
 
 
 def create_local_engine() -> Engine:
@@ -149,3 +149,15 @@ class Encouragement(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     quote: Mapped[str] = mapped_column(String(256))
     author: Mapped[str] = mapped_column(String(64))
+
+
+def add_encouragement() -> None:
+    db = get_db()
+    if db.query(Encouragement).count() == 0:
+        with open(os.path.join(os.getcwd(), "backend", "quotes.txt")) as quotes_file:
+            for line in quotes_file.readlines():
+                line = line.strip()
+                if not line.startswith("#"):
+                    quote, author = line.rsplit("-", 1)
+                    db.add(Encouragement(quote=quote.strip(), author=author.strip()))
+            db.commit()

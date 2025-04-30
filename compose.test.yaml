@@ -12,9 +12,9 @@ services:
   backend-test:
     environment:
     - DB_HOST=postgres
-    - DB_NAME=goal_tracker_test
-    - DB_KEY=test
-    - DB_USER=test
+    - POSTGRES_DB=goal_tracker_test
+    - POSTGRES_PASSWORD=test
+    - POSTGRES_USER=test
     - GOOGLE_OAUTH_CLIENT_ID=test
     build:
       dockerfile: ./backend/Dockerfile.test
@@ -27,7 +27,7 @@ services:
       black . &&
       pylint . &&
       mypy . --strict --check &&
-      pytest --cov-report term-missing --cov=backend . -vv
+      pytest --cov-report term-missing --cov=backend .
       "
   frontend-test:
     build:

@@ -18,7 +18,6 @@ it('renders daily goals', async () => {
         <MockedProvider mocks={[]}>
             <CalendarDayBody
                 date={mockDate}
-                currentUserEmail='fake.user@fake.com'
                 loading={false}
                 error={undefined}
                 userStatus={[mockGoalStatus]}>
@@ -39,7 +38,6 @@ it('renders weekly goals', async () => {
         <MockedProvider mocks={[]}>
             <CalendarDayBody
                 date={mockDate}
-                currentUserEmail='fake.user@fake.com'
                 loading={false}
                 error={undefined}
                 userStatus={[mockGoalStatus]}>
@@ -60,7 +58,6 @@ it('renders yearly goals', async () => {
         <MockedProvider mocks={[]}>
             <CalendarDayBody
                 date={mockDate}
-                currentUserEmail='fake.user@fake.com'
                 loading={false}
                 error={undefined}
                 userStatus={[mockGoalStatus]}>

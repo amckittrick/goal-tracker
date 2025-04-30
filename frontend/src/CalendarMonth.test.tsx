@@ -24,7 +24,7 @@ it('properly handles moving the date forwards and backwards', async () => {
 
     const { getByText } = render(
         <MockedProvider mocks={[mock, mock, mock, mock]}>
-            <CalendarMonth currentUserEmail={"fake.user@fake.com"}></CalendarMonth>
+            <CalendarMonth></CalendarMonth>
         </MockedProvider>
     )
 

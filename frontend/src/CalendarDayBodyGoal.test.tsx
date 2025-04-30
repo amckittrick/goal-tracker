@@ -15,7 +15,7 @@ it('renders unachieved goals in the past', async () => {
 
     const { getByText } = render(
         <MockedProvider mocks={[]}>
-            <CalendarDayBodyGoal goalStatus={mockGoalStatus} date={mockDate} currentUserEmail="fake.user@fake.com"></CalendarDayBodyGoal>
+            <CalendarDayBodyGoal goalStatus={mockGoalStatus} date={mockDate}></CalendarDayBodyGoal>
         </MockedProvider>
     )
 
@@ -30,7 +30,7 @@ it('renders unachieved goals for today or in the future', async () => {
 
     const { getByText } = render(
         <MockedProvider mocks={[]}>
-            <CalendarDayBodyGoal goalStatus={mockGoalStatus} date={mockDate} currentUserEmail="fake.user@fake.com"></CalendarDayBodyGoal>
+            <CalendarDayBodyGoal goalStatus={mockGoalStatus} date={mockDate}></CalendarDayBodyGoal>
         </MockedProvider>
     )
 
@@ -45,7 +45,7 @@ it('renders achieved goals', async () => {
 
     const { getByText } = render(
         <MockedProvider mocks={[]}>
-            <CalendarDayBodyGoal goalStatus={mockGoalStatus} date={mockDate} currentUserEmail="fake.user@fake.com"></CalendarDayBodyGoal>
+            <CalendarDayBodyGoal goalStatus={mockGoalStatus} date={mockDate}></CalendarDayBodyGoal>
         </MockedProvider>
     )
 
@@ -60,7 +60,7 @@ it('renders partially achieved goals', async () => {
 
     const { getByText } = render(
         <MockedProvider mocks={[]}>
-            <CalendarDayBodyGoal goalStatus={mockGoalStatus} date={mockDate} currentUserEmail="fake.user@fake.com"></CalendarDayBodyGoal>
+            <CalendarDayBodyGoal goalStatus={mockGoalStatus} date={mockDate}></CalendarDayBodyGoal>
         </MockedProvider>
     )
 

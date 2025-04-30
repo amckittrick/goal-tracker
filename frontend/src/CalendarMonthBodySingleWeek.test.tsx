@@ -16,8 +16,7 @@ it('renders unachieved goals in the past', async () => {
             <CalendarMonthBodySingleWeek
                 activityStatus={[ActivityStatus.UnachievedPast]}
                 goalName="Fake Daily Goal"
-                date={fakeDateToTest}                
-                currentUserEmail="fake.user@fake.com">
+                date={fakeDateToTest}>
             </CalendarMonthBodySingleWeek>
         </MockedProvider>
     )
@@ -35,8 +34,7 @@ it('renders unachieved goals for today or in the future', async () => {
             <CalendarMonthBodySingleWeek
                 activityStatus={[ActivityStatus.UnachievedTodayOrFuture]}
                 goalName="Fake Daily Goal"
-                date={fakeDateToTest}                
-                currentUserEmail="fake.user@fake.com">
+                date={fakeDateToTest}>
             </CalendarMonthBodySingleWeek>
         </MockedProvider>
     )
@@ -54,8 +52,7 @@ it('renders achieved goals', async () => {
             <CalendarMonthBodySingleWeek
                 activityStatus={[ActivityStatus.Achieved]}
                 goalName="Fake Daily Goal"
-                date={fakeDateToTest}                
-                currentUserEmail="fake.user@fake.com">
+                date={fakeDateToTest}>
             </CalendarMonthBodySingleWeek>
         </MockedProvider>
     )
@@ -73,8 +70,7 @@ it('renders partially achieved goals', async () => {
             <CalendarMonthBodySingleWeek
                 activityStatus={[ActivityStatus.Achieved, ActivityStatus.UnachievedPast]}
                 goalName="Fake Daily Goal"
-                date={fakeDateToTest}                
-                currentUserEmail="fake.user@fake.com">
+                date={fakeDateToTest}>
             </CalendarMonthBodySingleWeek>
         </MockedProvider>
     )

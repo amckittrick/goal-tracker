@@ -27,7 +27,7 @@ it('renders goals', async () => {
 
     const { getByText } = render(
         <MockedProvider mocks={[]}>
-            <CalendarThreeDayBodyGoal goalStatus={mockGoalStatus} currentUserEmail="fake.user@fake.com"></CalendarThreeDayBodyGoal>
+            <CalendarThreeDayBodyGoal goalStatus={mockGoalStatus}></CalendarThreeDayBodyGoal>
         </MockedProvider>
     )
 

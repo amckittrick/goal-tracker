@@ -1,10 +1,20 @@
 services:
+  goal-tracker-postgres:
+    image: "postgres:9.6"
+    env_file:
+      - ./backend/.env.dev
+    ports:
+     - "5432:5432"
+    volumes:
+     - ./backend/db/postgres:/var/lib/postgresql/data
   goal-tracker-backend-service:
     build: ./backend
     ports:
       - "8000:8000"
     env_file:
       - ./backend/.env.dev
+    depends_on:
+      - goal-tracker-postgres
   goal-tracker-frontend-service:
     build:
       context: ./frontend

@@ -47,7 +47,7 @@ class GoalTrackerContext(BaseContext):  # pylint: disable=too-few-public-methods
         return str(idinfo["email"])
 
 
-REQUIRED_OPTIONS = ["DB_USER", "DB_KEY", "DB_HOST", "DB_NAME", "GOOGLE_OAUTH_CLIENT_ID"]
+REQUIRED_OPTIONS = ["POSTGRES_USER", "POSTGRES_PASSWORD", "DB_HOST", "POSTGRES_DB", "GOOGLE_OAUTH_CLIENT_ID"]
 if all(option not in os.environ for option in REQUIRED_OPTIONS):
     load_dotenv(os.path.join(os.getcwd(), "backend", ".env.dev"))
 

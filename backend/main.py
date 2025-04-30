@@ -15,7 +15,8 @@ from alembic import command
 
 from backend import GoalTrackerContext
 from backend.api import schema
-from backend.database import init_db
+from backend.database import add_encouragement
+from backend.wait_for_postgres import wait_for_postgres
 
 
 def run_migrations() -> None:
@@ -28,8 +29,9 @@ def run_migrations() -> None:
 async def lifespan(fast_api_app: FastAPI) -> AsyncIterator[None]:
     """Handle the FastAPI app lifecycle."""
     del fast_api_app
-    init_db()
+    wait_for_postgres()
     run_migrations()
+    add_encouragement()
     yield
 
 
@@ -39,8 +41,9 @@ async def get_context() -> GoalTrackerContext:
 
 
 app = FastAPI(lifespan=lifespan)
+graphql_ide = "graphiql" if os.environ["ENVIRONMENT"] == "development" else None
 graphql_router = GraphQLRouter(
-    schema, path="/api/graphql", context_getter=get_context, graphql_ide=None  # type: ignore[arg-type]
+    schema, path="/api/graphql", context_getter=get_context, graphql_ide=graphql_ide  # type: ignore[arg-type]
 )
 app.include_router(graphql_router)
 
