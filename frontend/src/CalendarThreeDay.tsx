@@ -23,11 +23,11 @@ function handleCalendarNavigationClick(
   }
 };
 
-export default function CalendarThreeDay({currentUserEmail}: {currentUserEmail: string}) {
+export default function CalendarThreeDay() {
   const [date, setDate] = useState(new Date());
 
   const { loading, error, data } = useQuery(gqlGetUserStatus, {
-    variables: { email: currentUserEmail, duration: DisplayDuration.ThreeDay, dateToCheck: date}
+    variables: { duration: DisplayDuration.ThreeDay, dateToCheck: date}
   });
 
   return (
@@ -45,7 +45,6 @@ export default function CalendarThreeDay({currentUserEmail}: {currentUserEmail: 
       </div>
       <div className="card-block m-1 mb-2 p-0 bg-dark">
         <CalendarThreeDayBody
-          currentUserEmail={currentUserEmail}
           loading={loading}
           error={error}
           userStatus={data?.userStatus}>

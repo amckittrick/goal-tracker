@@ -1,9 +1,10 @@
 import { useMutation } from '@apollo/client';
 
 import { gqlDeleteGoal, gqlGetUserStatus } from './GQLQueries';
+import GQLError from './GQLError';
 
 export default function ModalEditGoalDelete(
-  { currentUserEmail, goalName, closeModal}: { currentUserEmail: string, goalName: string | null, closeModal: () => void }
+  { goalName, closeModal}: { goalName: string | null, closeModal: () => void }
 ) {
   const [deleteGoal, { loading, error }] = useMutation(
     gqlDeleteGoal,
@@ -15,7 +16,7 @@ export default function ModalEditGoalDelete(
   );
 
   if (loading) return <p>Submitting...</p>;
-  if (error) return <p>Submission error : {error.message}</p>;
+  if (error) return <GQLError error={error}></GQLError>;
 
   if (goalName === null) return null;
 
@@ -23,7 +24,7 @@ export default function ModalEditGoalDelete(
     <form
       onSubmit={event => {
         event.preventDefault();
-        deleteGoal({ variables:{ goalName: goalName, ownerEmail: currentUserEmail}});
+        deleteGoal({ variables:{ goalName: goalName}});
         closeModal();
       }}>
       <h5>Delete</h5>

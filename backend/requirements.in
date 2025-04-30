@@ -1,5 +1,6 @@
 alembic
 fastapi[standard]
+google-api-python-client
 strawberry-graphql[fastapi]
 psycopg2-binary
 python-dotenv

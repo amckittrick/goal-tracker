@@ -7,8 +7,8 @@ import GQLLoading from './GQLLoading.tsx';
 import GQLError from './GQLError.tsx';
 
 export default function CalendarThreeDayBody(
-  {currentUserEmail, loading, error, userStatus}:
-  {currentUserEmail: string, loading: boolean, error: ApolloError | undefined, userStatus: GoalStatusType[] | undefined}
+  {loading, error, userStatus}:
+  {loading: boolean, error: ApolloError | undefined, userStatus: GoalStatusType[] | undefined}
 ) {
   if (loading) return <GQLLoading></GQLLoading>;
   if (error) return <GQLError error={error}></GQLError>;
@@ -40,8 +40,7 @@ export default function CalendarThreeDayBody(
           (goalStatus.frequency == GoalFrequencyType.Daily) &&
           <CalendarThreeDayBodyGoal
             key={goalStatus.name}
-            goalStatus={goalStatus}
-            currentUserEmail={currentUserEmail}>
+            goalStatus={goalStatus}>
           </CalendarThreeDayBodyGoal>
         )
       }
@@ -50,8 +49,7 @@ export default function CalendarThreeDayBody(
           (goalStatus.frequency == GoalFrequencyType.Weekly) &&
           <CalendarThreeDayBodyGoal
             key={goalStatus.name}
-            goalStatus={goalStatus}
-            currentUserEmail={currentUserEmail}>
+            goalStatus={goalStatus}>
           </CalendarThreeDayBodyGoal>
         )
       }
@@ -60,8 +58,7 @@ export default function CalendarThreeDayBody(
           (goalStatus.frequency == GoalFrequencyType.Yearly) &&
           <CalendarThreeDayBodyGoal
             key={goalStatus.name}
-            goalStatus={goalStatus}
-            currentUserEmail={currentUserEmail}>
+            goalStatus={goalStatus}>
           </CalendarThreeDayBodyGoal>
         )
       }

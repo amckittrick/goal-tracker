@@ -3,7 +3,6 @@ import { useState } from 'react';
 
 import { DisplayDuration } from './__generated__/graphql.ts';
 
-import { UserObject } from './App.tsx';
 import CalendarDay from './CalendarDay.tsx';
 import CalendarMonth from './CalendarMonth.tsx';
 import CalendarThreeDay from './CalendarThreeDay.tsx';
@@ -11,20 +10,21 @@ import Encouragement from './Encouragement.tsx';
 import ModalCreateGoal from './ModalCreateGoal.tsx';
 import ModalEditGoal from './ModalEditGoal.tsx';
 import { gqlGetUser } from './GQLQueries.tsx';
+import GQLError from './GQLError.tsx';
 import UserHeader from './UserHeader.tsx';
 
-function RenderCalendar(displayDuration: DisplayDuration, email: string) {
+function RenderCalendar(displayDuration: DisplayDuration) {
   switch (displayDuration) {
     case DisplayDuration.Day:
-      return <CalendarDay currentUserEmail={email}></CalendarDay>;
+      return <CalendarDay></CalendarDay>;
     case DisplayDuration.ThreeDay:
-      return <CalendarThreeDay currentUserEmail={email}></CalendarThreeDay>;
+      return <CalendarThreeDay></CalendarThreeDay>;
     case DisplayDuration.Month:
-      return <CalendarMonth currentUserEmail={email}></CalendarMonth>
+      return <CalendarMonth></CalendarMonth>
   }
 }
 
-export default function User({ user }: { user: UserObject }) {
+export default function User() {
   const [modalEditGoalIsOpen, setModalEditGoalIsOpen] = useState(false);
   const [displayDuration, setDisplayDuration] = useState(DisplayDuration.Day);
 
@@ -46,12 +46,10 @@ export default function User({ user }: { user: UserObject }) {
     setModalCreateGoalIsOpen(false);
   };
 
-  const { loading, error, data } = useQuery(gqlGetUser, {
-    variables: { email: user.email }
-  });
+  const { loading, error, data } = useQuery(gqlGetUser);
 
   if (loading) return null;
-  if (error) return <p>Error : {error.message}</p>;
+  if (error) return <GQLError error={error}></GQLError>;
 
   const goalNames = data?.user.goals.map((goal) => goal.name);
 
@@ -63,17 +61,15 @@ export default function User({ user }: { user: UserObject }) {
       openModalEditGoal={openModalEditGoal}
       openModalCreateGoal={openModalCreateGoal}>
     </UserHeader>
-    {data?.user && RenderCalendar(displayDuration, data.user.email)}
+    {data?.user && RenderCalendar(displayDuration)}
     {modalEditGoalIsOpen && (
       <ModalEditGoal
-        currentUserEmail={user.email}
         closeModal={closeModalEditGoal}
         goalNames={goalNames}>
       </ModalEditGoal>
     )}
     {modalCreateGoalIsOpen && (
       <ModalCreateGoal
-        currentUserEmail={user.email}
         closeModal={closeModalCreateGoal}>
       </ModalCreateGoal>
     )}

@@ -13,7 +13,7 @@ interface DayStatus {
   count: number
 }
 
-export default function CalendarThreeDayBodyGoal({goalStatus, currentUserEmail}: {goalStatus: GoalStatusType, currentUserEmail: string}) {
+export default function CalendarThreeDayBodyGoal({goalStatus}: {goalStatus: GoalStatusType}) {
   const [CreateOrUpdateActivity, CreateOrUpdateActivityStatus] = useMutation(
     gqlCreateOrUpdateActivity,
     {
@@ -71,7 +71,6 @@ export default function CalendarThreeDayBodyGoal({goalStatus, currentUserEmail}:
                       CreateOrUpdateActivity(
                         {
                           variables: {
-                            ownerEmail: currentUserEmail,
                             goalName: goalStatus.name,
                             dateOfActivity: dayStatus.date,
                             count: dayStatus.count == index + 1 ? 0 : index + 1

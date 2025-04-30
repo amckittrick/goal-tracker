@@ -9,7 +9,7 @@ import CalendarMonthBodySingleWeek from './CalendarMonthBodySingleWeek.tsx';
 
 import "./CalendarMonth.css"
 
-function Render(goalStatus: GoalStatusType | null, currentUserEmail: string) {
+function Render(goalStatus: GoalStatusType | null) {
   if (goalStatus === null) return [];
 
   const elements = [];
@@ -24,8 +24,7 @@ function Render(goalStatus: GoalStatusType | null, currentUserEmail: string) {
             key={`LastMonth${i}`}
             activityStatus={goalStatus.statuses[i]}
             goalName={goalStatus.name}
-            date={daysToDisplay[i]}
-            currentUserEmail={currentUserEmail}>
+            date={daysToDisplay[i]}>
           </CalendarMonthBodySingleDay>
         )
         break;
@@ -35,8 +34,7 @@ function Render(goalStatus: GoalStatusType | null, currentUserEmail: string) {
             key={`LastMonth${i}`}
             activityStatus={goalStatus.statuses[i]}
             goalName={goalStatus.name}
-            date={daysToDisplay[i]}
-            currentUserEmail={currentUserEmail}>
+            date={daysToDisplay[i]}>
           </CalendarMonthBodySingleWeek>
         )
         break;
@@ -47,8 +45,8 @@ function Render(goalStatus: GoalStatusType | null, currentUserEmail: string) {
 }
 
 export default function CalendarMonthBody(
-  {currentUserEmail, loading, error, userStatus, goalName}:
-  {currentUserEmail: string, loading: boolean, error: ApolloError | undefined, userStatus: GoalStatusType[] | undefined, goalName: string | null}
+  {loading, error, userStatus, goalName}:
+  {loading: boolean, error: ApolloError | undefined, userStatus: GoalStatusType[] | undefined, goalName: string | null}
 ) {
 
   if (loading) return (
@@ -69,7 +67,7 @@ export default function CalendarMonthBody(
 
   return (
     <ul className="calendar-dates d-flex flex-wrap p-0">
-      { Render(goal, currentUserEmail) }
+      { Render(goal) }
     </ul>
   );
 }

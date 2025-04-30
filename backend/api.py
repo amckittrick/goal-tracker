@@ -5,13 +5,17 @@ from calendar import Calendar
 from dataclasses import field
 from datetime import datetime, timedelta
 from enum import Enum
+import os
 from random import randrange
 from typing import List, Optional, Union
 
+from graphql.validation import NoSchemaIntrospectionCustomRule
 from sqlalchemy.orm import Session
 import strawberry
 from strawberry import Schema
+from strawberry.extensions import AddValidationRules
 
+from backend import GoalTrackerContext
 from backend.database import (
     DailyActivity as DailyActivityModel,
     Encouragement as EncouragementModel,
@@ -49,11 +53,6 @@ class GoalFrequencyType(Enum):
     DAILY = "daily"
     WEEKLY = "weekly"
     YEARLY = "yearly"
-
-
-def convert_goal_frequency(model: GoalFrequencyModel) -> GoalFrequencyType:
-    """Convert a GoalFrequencyModel to a GoalFrequencyType."""
-    return GoalFrequencyType[model.value]
 
 
 @strawberry.type
@@ -193,13 +192,12 @@ def convert_yearly_activity(model: YearlyActivityModel) -> YearlyActivityType:
     )
 
 
-def get_goal(db_session: Session, email: str, goal_name: str) -> GoalModel:
+def get_goal(user: UserModel, goal_name: str) -> GoalModel:
     """Get a goal for a user."""
-    user = db_session.query(UserModel).where(UserModel.email == email).one()
     for goal in user.goals:
         if goal.name == goal_name:
             return goal
-    raise InvalidAPIArgumentException(f"No goal found with name '{goal_name}' for user '{user.email}'")
+    raise InvalidAPIArgumentException(f"No goal found with name '{goal_name}' for current user.")
 
 
 def get_daily_activity(goal: GoalModel, date_to_check: datetime) -> DailyActivityModel:
@@ -268,6 +266,98 @@ def get_goal_status_for_date(goal: GoalModel, date_to_check: datetime) -> List[A
     return activity_statuses
 
 
+def get_current_user_email(info: strawberry.Info[GoalTrackerContext]) -> str:
+    """
+    Method to get the current users email from GoalTrackerContext.
+    Separate method so it can be mocked in testing.
+    """
+    if info.context.user_email is None:
+        raise ValueError("No userEmail found in context. Ensure Bearer token was provided.")
+    return info.context.user_email
+
+
+def get_current_user(db: Session, info: strawberry.Info[GoalTrackerContext]) -> UserModel:
+    """
+    Get the current User as specified by the token in the header.
+    See backend.main.py -> context_getter for where this is set.
+    """
+    user_email = get_current_user_email(info)
+    return db.query(UserModel).where(UserModel.email == user_email).one()
+
+
+def get_goal_status_day(goal: GoalModel, date_to_check: datetime) -> GoalStatusType:
+    """Given goal, calculate it's status for a single day."""
+    return GoalStatusType(
+        name=goal.name,
+        statuses=[get_goal_status_for_date(goal, date_to_check)],
+        dates=[date_to_check],
+        frequency=GoalFrequencyType[goal.frequency.name],
+    )
+
+
+def get_goal_status_three_day(goal: GoalModel, date_to_check: datetime) -> GoalStatusType:
+    """Given goal, calculate it's status for three days."""
+    dates: List[datetime] = []
+    statuses: List[List[ActivityStatus]] = []
+    goal_status = GoalStatusType(
+        name=goal.name, frequency=GoalFrequencyType[goal.frequency.name], statuses=[], dates=[]
+    )
+    match goal.frequency:
+        case GoalFrequencyModel.DAILY:
+            statuses.append(get_goal_status_for_date(goal, date_to_check))
+            dates.append(date_to_check)
+
+            statuses.append(get_goal_status_for_date(goal, date_to_check - timedelta(days=1)))
+            dates.append(date_to_check - timedelta(days=1))
+
+            statuses.append(get_goal_status_for_date(goal, date_to_check - timedelta(days=2)))
+            dates.append(date_to_check - timedelta(days=2))
+
+            statuses.reverse()
+            dates.reverse()
+
+            goal_status.dates = dates
+            goal_status.statuses = statuses
+        case GoalFrequencyModel.WEEKLY:
+            goal_status.statuses = [get_goal_status_for_date(goal, date_to_check)]
+            goal_status.dates = [date_to_check]
+        case GoalFrequencyModel.YEARLY:
+            goal_status.statuses = [get_goal_status_for_date(goal, date_to_check)]
+            goal_status.dates = [date_to_check]
+    return goal_status
+
+
+def get_goal_status_month(goal: GoalModel, date_to_check: datetime) -> GoalStatusType:
+    """Given goal, calculate it's status for a month."""
+    calendar = Calendar(firstweekday=6)
+    dates: List[datetime] = []
+    statuses: List[List[ActivityStatus]] = []
+    goal_status = GoalStatusType(
+        name=goal.name, frequency=GoalFrequencyType[goal.frequency.name], statuses=[], dates=[]
+    )
+    match goal.frequency:
+        case GoalFrequencyModel.DAILY:
+            for month_date in calendar.itermonthdates(date_to_check.year, date_to_check.month):
+                month_datetime = datetime(month_date.year, month_date.month, month_date.day)
+                statuses.append(get_goal_status_for_date(goal, month_datetime))
+                dates.append(month_datetime)
+            goal_status.statuses = statuses
+            goal_status.dates = dates
+        case GoalFrequencyModel.WEEKLY:
+            for week_date in calendar.itermonthdates(date_to_check.year, date_to_check.month):
+                if week_date.weekday() == 6:
+                    week_datetime = datetime(week_date.year, week_date.month, week_date.day)
+                    statuses.append(get_goal_status_for_date(goal, week_datetime))
+                    dates.append(week_datetime)
+            goal_status.statuses = statuses
+            goal_status.dates = dates
+        case GoalFrequencyModel.YEARLY:
+            goal_status.statuses = [get_goal_status_for_date(goal, date_to_check)]
+            goal_status.dates = [date_to_check]
+
+    return goal_status
+
+
 @strawberry.type
 class Query:
     """GraphQL Queries"""
@@ -280,11 +370,9 @@ class Query:
         return [convert_user(user) for user in users]
 
     @strawberry.field
-    async def user(self, email: str) -> UserType:
+    async def user(self, info: strawberry.Info[GoalTrackerContext]) -> UserType:
         """Return a single user."""
-        db = get_db()
-        user = db.query(UserModel).where(UserModel.email == email).one()
-        return convert_user(user)
+        return convert_user(get_current_user(get_db(), info))
 
     @strawberry.field
     async def encouragement(self) -> EncouragementType:
@@ -295,92 +383,28 @@ class Query:
 
     @strawberry.field
     async def user_status(  # pylint: disable=too-many-statements, too-many-locals
-        self, email: str, duration: DisplayDuration, date_to_check: datetime, goal_name: Optional[str] = None
+        self,
+        duration: DisplayDuration,
+        date_to_check: datetime,
+        info: strawberry.Info[GoalTrackerContext],
+        goal_name: Optional[str] = None,
     ) -> List[GoalStatusType]:
         """Calculate and return the status for all goals associated with a given user on the provided date."""
-        db = get_db()
-        user = db.query(UserModel).where(UserModel.email == email).one()
+        user = get_current_user(get_db(), info)
         goal_statuses = []
-        statuses: List[List[ActivityStatus]] = []
-        dates: List[datetime] = []
         match duration:
             case DisplayDuration.DAY:
                 for goal in user.goals:
-                    dates = []
-                    statuses = []
                     if goal_name is None or goal.name == goal_name:
-                        goal_status = GoalStatusType(
-                            name=goal.name,
-                            statuses=[get_goal_status_for_date(goal, date_to_check)],
-                            dates=[date_to_check],
-                            frequency=GoalFrequencyType[goal.frequency.name],
-                        )
-                        goal_statuses.append(goal_status)
+                        goal_statuses.append(get_goal_status_day(goal, date_to_check))
             case DisplayDuration.THREE_DAY:
                 for goal in user.goals:
-                    dates = []
-                    statuses = []
                     if goal_name is None or goal.name == goal_name:
-                        goal_status = GoalStatusType(
-                            name=goal.name, frequency=GoalFrequencyType[goal.frequency.name], statuses=[], dates=[]
-                        )
-                        match goal.frequency:
-                            case GoalFrequencyModel.DAILY:
-                                statuses.append(get_goal_status_for_date(goal, date_to_check))
-                                dates.append(date_to_check)
-
-                                statuses.append(get_goal_status_for_date(goal, date_to_check - timedelta(days=1)))
-                                dates.append(date_to_check - timedelta(days=1))
-
-                                statuses.append(get_goal_status_for_date(goal, date_to_check - timedelta(days=2)))
-                                dates.append(date_to_check - timedelta(days=2))
-
-                                statuses.reverse()
-                                dates.reverse()
-
-                                goal_status.dates = dates
-                                goal_status.statuses = statuses
-                                goal_statuses.append(goal_status)
-                            case GoalFrequencyModel.WEEKLY:
-                                goal_status.statuses = [get_goal_status_for_date(goal, date_to_check)]
-                                goal_status.dates = [date_to_check]
-                                goal_statuses.append(goal_status)
-                            case GoalFrequencyModel.YEARLY:
-                                goal_status.statuses = [get_goal_status_for_date(goal, date_to_check)]
-                                goal_status.dates = [date_to_check]
-                                goal_statuses.append(goal_status)
+                        goal_statuses.append(get_goal_status_three_day(goal, date_to_check))
             case DisplayDuration.MONTH:
-                calendar = Calendar(firstweekday=6)
                 for goal in user.goals:
-                    dates = []
-                    statuses = []
                     if goal_name is None or goal.name == goal_name:
-                        goal_status = GoalStatusType(
-                            name=goal.name, frequency=GoalFrequencyType[goal.frequency.name], statuses=[], dates=[]
-                        )
-
-                        match goal.frequency:
-                            case GoalFrequencyModel.DAILY:
-                                for month_date in calendar.itermonthdates(date_to_check.year, date_to_check.month):
-                                    month_datetime = datetime(month_date.year, month_date.month, month_date.day)
-                                    statuses.append(get_goal_status_for_date(goal, month_datetime))
-                                    dates.append(month_datetime)
-                                goal_status.statuses = statuses
-                                goal_status.dates = dates
-                                goal_statuses.append(goal_status)
-                            case GoalFrequencyModel.WEEKLY:
-                                for week_date in calendar.itermonthdates(date_to_check.year, date_to_check.month):
-                                    if week_date.weekday() == 6:
-                                        week_datetime = datetime(week_date.year, week_date.month, week_date.day)
-                                        statuses.append(get_goal_status_for_date(goal, week_datetime))
-                                        dates.append(week_datetime)
-                                goal_status.statuses = statuses
-                                goal_status.dates = dates
-                                goal_statuses.append(goal_status)
-                            case GoalFrequencyModel.YEARLY:
-                                goal_status.statuses = [get_goal_status_for_date(goal, date_to_check)]
-                                goal_status.dates = [date_to_check]
-                                goal_statuses.append(goal_status)
+                        goal_statuses.append(get_goal_status_month(goal, date_to_check))
         return goal_statuses
 
 
@@ -403,13 +427,13 @@ class Mutation:
     async def create_goal(
         self,
         name: str,
-        owner_email: str,
         frequency: GoalFrequencyType,
+        info: strawberry.Info[GoalTrackerContext],
         required_activities_per_period: Optional[int] = 1,
     ) -> UserType:
         """Create a new goal."""
         db = get_db()
-        owner = db.query(UserModel).where(UserModel.email == owner_email).one()
+        owner = get_current_user(db, info)
 
         goal = GoalModel(
             name=name,
@@ -429,25 +453,30 @@ class Mutation:
         return convert_user(owner)
 
     @strawberry.mutation
-    async def rename_goal(self, current_goal_name: str, new_goal_name: str, owner_email: str) -> GoalType:
+    async def rename_goal(
+        self, current_goal_name: str, new_goal_name: str, info: strawberry.Info[GoalTrackerContext]
+    ) -> GoalType:
         """Rename a goal."""
         db = get_db()
+        owner = get_current_user(db, info)
 
-        user = db.query(UserModel).where(UserModel.email == owner_email).one()
-        for goal in user.goals:
+        for goal in owner.goals:
             if goal.name == current_goal_name:
                 goal.name = new_goal_name
 
                 db.commit()
                 db.refresh(goal)
                 return convert_goal(goal)
-        raise InvalidAPIArgumentException(f"No goal found with name '{current_goal_name}' for user '{owner_email}'")
+        raise InvalidAPIArgumentException(f"No goal found with name '{current_goal_name}' for current user.")
 
     @strawberry.mutation
-    async def add_goal_to_user(self, owner_email: str, additional_user_email: str, goal_name: str) -> UserType:
+    async def add_goal_to_user(
+        self, additional_user_email: str, goal_name: str, info: strawberry.Info[GoalTrackerContext]
+    ) -> UserType:
         """Add a goal that's owned by one user to now be shared by an additional user."""
         db = get_db()
-        owner = db.query(UserModel).where(UserModel.email == owner_email).one()
+        owner = get_current_user(db, info)
+
         additional_user = db.query(UserModel).where(UserModel.email == additional_user_email).one()
         for goal in owner.goals:
             if goal.name == goal_name:
@@ -456,15 +485,16 @@ class Mutation:
                 db.commit()
                 db.refresh(owner)
                 return convert_user(owner)
-        raise InvalidAPIArgumentException(f"No goal found with name '{goal_name}' for user '{owner_email}'")
+        raise InvalidAPIArgumentException(f"No goal found with name '{goal_name}' for current user.")
 
     @strawberry.mutation
-    async def delete_goal(self, name: str, owner_email: str) -> UserType:
+    async def delete_goal(self, name: str, info: strawberry.Info[GoalTrackerContext]) -> UserType:
         """Delete a goal."""
         db = get_db()
-        user = db.query(UserModel).where(UserModel.email == owner_email).one()
+        owner = get_current_user(db, info)
+
         goal_to_delete = None
-        for goal in user.goals:
+        for goal in owner.goals:
             if goal.name == name:
                 goal_to_delete = goal
                 db.query(DailyActivityModel).filter(DailyActivityModel.goal_id == goal.id).delete()
@@ -472,26 +502,24 @@ class Mutation:
                 db.query(YearlyActivityModel).filter(YearlyActivityModel.goal_id == goal.id).delete()
                 break
         if goal_to_delete is None:
-            raise InvalidAPIArgumentException(f"No goal found with name '{name}' on user '{owner_email}' to delete.")
+            raise InvalidAPIArgumentException(f"No goal found with name '{name}' for current user.")
         users_needing_deletion = db.query(UserModel).filter(UserModel.goals.any(GoalModel.name == name)).all()
         for user_needing_deletion in users_needing_deletion:
             user_needing_deletion.goals.remove(goal_to_delete)
 
         db.commit()
-        db.refresh(user)
-        return convert_user(user)
+        db.refresh(owner)
+        return convert_user(owner)
 
     @strawberry.mutation
     async def create_or_update_activity(
-        self,
-        owner_email: str,
-        goal_name: str,
-        date_of_activity: datetime,
-        count: int,
+        self, goal_name: str, date_of_activity: datetime, count: int, info: strawberry.Info[GoalTrackerContext]
     ) -> GoalType:
         """Create or update an activity"""
         db = get_db()
-        goal = get_goal(db, owner_email, goal_name)
+        owner = get_current_user(db, info)
+        goal = get_goal(owner, goal_name)
+
         activity: Union[DailyActivityModel, WeeklyActivityModel, YearlyActivityModel]
 
         try:
@@ -505,8 +533,6 @@ class Mutation:
                 case GoalFrequencyModel.YEARLY:
                     activity = get_yearly_activity(goal, date_of_activity)
                     activity.count = count
-                case _:
-                    raise ValueError(f"Invalid frequency provided: {goal.frequency}")
 
         except InvalidAPIArgumentException:
             match goal.frequency:
@@ -532,10 +558,6 @@ class Mutation:
                         count=count,
                     )
                     goal.yearly_activities.append(activity)
-                case _:
-                    raise ValueError(  # pylint: disable=raise-missing-from
-                        f"Invalid frequency provided: {goal.frequency}"
-                    )
 
         db.commit()
         db.refresh(activity)
@@ -543,4 +565,13 @@ class Mutation:
         return convert_goal(goal)
 
 
-schema = Schema(query=Query, mutation=Mutation)
+if os.environ["ENVIRONMENT"] == "Development":
+    schema = Schema(query=Query, mutation=Mutation)
+else:
+    schema = Schema(
+        query=Query,
+        mutation=Mutation,
+        extensions=[
+            AddValidationRules([NoSchemaIntrospectionCustomRule]),
+        ],
+    )

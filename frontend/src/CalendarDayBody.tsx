@@ -7,8 +7,8 @@ import GQLLoading from './GQLLoading.tsx';
 import GQLError from './GQLError.tsx';
 
 export default function CalendarDayBody(
-  {date, currentUserEmail, loading, error, userStatus}:
-  {date: Date, currentUserEmail: string, loading: boolean, error: ApolloError | undefined, userStatus: GoalStatusType[] | undefined}
+  {date, loading, error, userStatus}:
+  {date: Date, loading: boolean, error: ApolloError | undefined, userStatus: GoalStatusType[] | undefined}
 ) {
   if (loading) return <GQLLoading></GQLLoading>;
   if (error) return <GQLError error={error}></GQLError>;
@@ -24,8 +24,7 @@ export default function CalendarDayBody(
             <CalendarDayBodyGoal
               key={goalStatus.name}
               goalStatus={goalStatus}
-              date={date}
-              currentUserEmail={currentUserEmail}>
+              date={date}>
             </CalendarDayBodyGoal>
           )
         }
@@ -36,8 +35,7 @@ export default function CalendarDayBody(
             <CalendarDayBodyGoal
               key={goalStatus.name}
               goalStatus={goalStatus}
-              date={date}
-              currentUserEmail={currentUserEmail}>
+              date={date}>
             </CalendarDayBodyGoal>
           )
         }
@@ -48,8 +46,7 @@ export default function CalendarDayBody(
             <CalendarDayBodyGoal
               key={goalStatus.name}
               goalStatus={goalStatus}
-              date={date}
-              currentUserEmail={currentUserEmail}>
+              date={date}>
             </CalendarDayBodyGoal>
           )
         }

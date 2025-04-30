@@ -5,7 +5,7 @@ import ModalEditGoalDelete from './ModalEditGoalDelete.tsx';
 import ModalEditGoalRenameGoal from './ModalEditGoalRenameGoal.tsx';
 
 export default function ModalEditGoal(
-  { currentUserEmail, closeModal, goalNames}: { currentUserEmail: string, closeModal: () => void, goalNames: string[] | undefined}
+  { closeModal, goalNames}: { closeModal: () => void, goalNames: string[] | undefined}
 ) {
 
   const [goalToEdit, setGoalToEdit] = useState<string | null>(null);
@@ -36,11 +36,11 @@ export default function ModalEditGoal(
                       <option value={goalName}>{goalName}</option>
                     )}
                   </select>
-                  <ModalEditGoalDelete currentUserEmail={currentUserEmail} goalName={goalToEdit} closeModal={closeModal}></ModalEditGoalDelete>
+                  <ModalEditGoalDelete goalName={goalToEdit} closeModal={closeModal}></ModalEditGoalDelete>
                   <hr></hr>
-                  <ModalEditGoalAddUser currentUserEmail={currentUserEmail} goalName={goalToEdit} closeModal={closeModal}></ModalEditGoalAddUser>
+                  <ModalEditGoalAddUser goalName={goalToEdit} closeModal={closeModal}></ModalEditGoalAddUser>
                   <hr></hr>
-                  <ModalEditGoalRenameGoal currentUserEmail={currentUserEmail} goalName={goalToEdit} closeModal={closeModal}></ModalEditGoalRenameGoal>
+                  <ModalEditGoalRenameGoal goalName={goalToEdit} closeModal={closeModal}></ModalEditGoalRenameGoal>
                 </div>
                 )
               }

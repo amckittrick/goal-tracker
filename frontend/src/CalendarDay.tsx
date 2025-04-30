@@ -20,11 +20,11 @@ function HandleCalendarNavigationClick(
   setDate(newDate);
 };
 
-export default function CalendarDay({currentUserEmail}: {currentUserEmail: string}) {
+export default function CalendarDay() {
   const [date, setDate] = useState(new Date());
 
   const { loading, error, data } = useQuery(gqlGetUserStatus, {
-    variables: { email: currentUserEmail, duration: DisplayDuration.Day, dateToCheck: date.toISOString()}
+    variables: { duration: DisplayDuration.Day, dateToCheck: date.toISOString()}
   });
 
   return (
@@ -45,7 +45,6 @@ export default function CalendarDay({currentUserEmail}: {currentUserEmail: strin
             <div className="mx-1 flex-fill">
               <CalendarDayBody
                 date={date}
-                currentUserEmail={currentUserEmail}
                 loading={loading}
                 error={error}
                 userStatus={data?.userStatus}>

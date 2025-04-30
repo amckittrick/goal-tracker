@@ -7,7 +7,7 @@ import GQLLoading from './GQLLoading.tsx';
 
 import './CalendarDayBodyGoal.css';
 
-export default function CalendarDayBodyGoal({goalStatus, date, currentUserEmail}: {goalStatus: GoalStatusType, date: Date, currentUserEmail: string}) {
+export default function CalendarDayBodyGoal({goalStatus, date}: {goalStatus: GoalStatusType, date: Date}) {
   const [CreateOrUpdateActivity, CreateOrUpdateActivityStatus] = useMutation(
     gqlCreateOrUpdateActivity,
     {
@@ -53,7 +53,6 @@ export default function CalendarDayBodyGoal({goalStatus, date, currentUserEmail}
                   CreateOrUpdateActivity(
                     {
                       variables: {
-                        ownerEmail: currentUserEmail,
                         goalName: goalStatus.name,
                         dateOfActivity: date,
                         count: count == index + 1 ? 0 : index + 1

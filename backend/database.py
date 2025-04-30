@@ -5,7 +5,6 @@ import enum
 import os
 from typing import Callable, List
 
-from dotenv import load_dotenv
 from sqlalchemy import CheckConstraint, Column, create_engine, Engine, ForeignKey, String, Table, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, sessionmaker, Session
 
@@ -33,14 +32,6 @@ init_db: FunctionWithSessionLocalAttr
 
 def get_db_connection_str() -> str:
     """Return a string representing the connection to the database."""
-    required_options = ["DB_USER", "DB_KEY", "DB_HOST", "DB_NAME"]
-    if all(option not in os.environ for option in required_options):
-        load_dotenv(os.path.join(os.getcwd(), "backend", ".env.dev"))
-
-    for required_option in required_options:
-        if required_option not in os.environ:
-            raise GoalTrackerException(f"'{required_option}' environment variable not found.")
-
     return f"postgresql+psycopg2://{os.environ['DB_USER']}:{os.environ['DB_KEY']}@{os.environ['DB_HOST']}/{os.environ['DB_NAME']}"  # pylint: disable=line-too-long
 
 

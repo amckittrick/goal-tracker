@@ -15,6 +15,7 @@ services:
     - DB_NAME=goal_tracker_test
     - DB_KEY=test
     - DB_USER=test
+    - GOOGLE_OAUTH_CLIENT_ID=test
     build:
       dockerfile: ./backend/Dockerfile.test
     volumes:
@@ -26,7 +27,7 @@ services:
       black . &&
       pylint . &&
       mypy . --strict --check &&
-      pytest --cov-report term-missing --cov=backend .
+      pytest --cov-report term-missing --cov=backend . -vv
       "
   frontend-test:
     build:

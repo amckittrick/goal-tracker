@@ -4,7 +4,7 @@ import React from 'react';
 import { gqlAddGoalToUser } from './GQLQueries';
 
 export default function ModalEditGoalAddUser(
-  { currentUserEmail, goalName, closeModal}: { currentUserEmail: string, goalName: string | null, closeModal: () => void }
+  { goalName, closeModal}: { goalName: string | null, closeModal: () => void }
 ) {
   const [addGoalToUser, addGoalToUserStatus] = useMutation(gqlAddGoalToUser);
 
@@ -19,7 +19,7 @@ export default function ModalEditGoalAddUser(
     <form
       onSubmit={event => {
         event.preventDefault();
-        addGoalToUser({ variables:{ goalName: goalName, ownerEmail: currentUserEmail, additionalUserEmail: additionalUserEmail}});
+        addGoalToUser({ variables:{ goalName: goalName, additionalUserEmail: additionalUserEmail}});
         closeModal();
       }}>
       <div className="mb-3">

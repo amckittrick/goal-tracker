@@ -2,17 +2,20 @@
 
 from contextlib import asynccontextmanager
 import os
-from typing import AsyncIterator
+from typing import Annotated, AsyncIterator, Dict
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Form
 from fastapi.middleware.cors import CORSMiddleware
-from strawberry.asgi import GraphQL
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_reqests
+from strawberry.fastapi import GraphQLRouter
 
 from alembic.config import Config
 from alembic import command
 
-from backend.database import init_db
+from backend import GoalTrackerContext
 from backend.api import schema
+from backend.database import init_db
 
 
 def run_migrations() -> None:
@@ -30,9 +33,16 @@ async def lifespan(fast_api_app: FastAPI) -> AsyncIterator[None]:
     yield
 
 
-app = FastAPI(lifespan=lifespan)
+async def get_context() -> GoalTrackerContext:
+    """Sets up the request context for use by APIs."""
+    return GoalTrackerContext()
 
-app.add_route("/graphql", GraphQL(schema))  # type: ignore
+
+app = FastAPI(lifespan=lifespan)
+graphql_router = GraphQLRouter(
+    schema, path="/api/graphql", context_getter=get_context, graphql_ide=None  # type: ignore[arg-type]
+)
+app.include_router(graphql_router)
 
 origins = ["http://localhost"]
 
@@ -43,3 +53,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.post("/api/tokensignin")
+def token_signin(idtoken: Annotated[str, Form()]) -> Dict[str, str]:
+    """Verifies the token provided by the frontend."""
+    idinfo = id_token.verify_oauth2_token(  # type: ignore[no-untyped-call]
+        idtoken, google_reqests.Request(), os.environ["GOOGLE_OAUTH_CLIENT_ID"]  # type: ignore[no-untyped-call]
+    )
+    return {"email": idinfo["email"], "name": idinfo["name"]}

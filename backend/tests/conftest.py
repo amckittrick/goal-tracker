@@ -1,6 +1,7 @@
 """Configure the test environment."""
 
 from collections.abc import Iterator
+from unittest.mock import patch
 
 import pytest
 from sqlalchemy.orm import close_all_sessions
@@ -23,4 +24,7 @@ def db_setup_cleanup() -> Iterator[None]:
     close_all_sessions()
     Base.metadata.create_all(bind=create_local_engine())
 
-    yield
+    with patch("backend.api.get_current_user_email") as mock_get_current_user_email:
+        mock_get_current_user_email.return_value = "fake.user@fake.com"
+
+        yield

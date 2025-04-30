@@ -6,33 +6,20 @@ import Login from './Login.tsx';
 
 import "bootstrap-icons/font/bootstrap-icons.css";
 
+import { setCookie, getCookie, deleteCookie } from './main.tsx';
+
 export interface UserObject {
   email: string,
   fullname: string,
+  token: string,
 }
 
 function App() {
-  const setCookie = (name: string, value: string, days: number) => {
-    const expirationDate = new Date();
-    expirationDate.setDate(expirationDate.getDate() + days);
-    document.cookie = `${name}=${value}; expires=${expirationDate.toUTCString()}; path=/`
-  };
-
-  const getCookie = (name: string) => {
-    const cookies = document.cookie.split("; ").find((row) => row.startsWith(`${name}`));
-    return cookies ? cookies.split("=")[1] : null;
-  };
-
-  const deleteCookie = (name: string) => {
-    if (getCookie(name)) {
-      document.cookie = `${name}=null; expires=Thu, 01 Jan 1970 00:0:00 UTC; path=/`
-    }
-  };
-
   const initialUserEmail = getCookie("userEmail");
   const initialUserFullname = getCookie("userFullname");
+  const initialToken = getCookie("userToken");
 
-  const initialUser = initialUserEmail && initialUserFullname ? { email: initialUserEmail, fullname: initialUserFullname } : null;
+  const initialUser = initialUserEmail && initialUserFullname && initialToken ? { email: initialUserEmail, fullname: initialUserFullname, token: initialToken} : null;
 
   const [currentUser, setcurrentUser] = useState(initialUser);
 
@@ -40,9 +27,11 @@ function App() {
     if (user === null) {
       deleteCookie("userEmail");
       deleteCookie("userFullname");
+      deleteCookie("userToken");
     } else {
       setCookie("userEmail", user.email, 1);
       setCookie("userFullname", user.fullname, 1);
+      setCookie("userToken", user.token, 1);
     }
     setcurrentUser(user);
   };
@@ -53,7 +42,7 @@ function App() {
       </Header>
       {currentUser === null ?
         (<Login updateUser={updateUser}></Login>) : 
-        (<User user={currentUser}></User>)
+        (<User></User>)
       }
     </div>
   )

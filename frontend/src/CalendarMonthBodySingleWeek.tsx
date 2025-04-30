@@ -8,8 +8,8 @@ import GQLLoading from './GQLLoading.tsx';
 import "./CalendarMonthBodySingleWeek.css"
 
 export default function CalendarMonthBodySingleWeek(
-  {activityStatus, goalName, date, currentUserEmail}:
-  {activityStatus: ActivityStatus[], goalName: string, date: Date, currentUserEmail: string}
+  {activityStatus, goalName, date}:
+  {activityStatus: ActivityStatus[], goalName: string, date: Date}
 ) {
   const [CreateOrUpdateActivity, CreateOrUpdateActivityStatus] = useMutation(
     gqlCreateOrUpdateActivity,
@@ -69,7 +69,6 @@ export default function CalendarMonthBodySingleWeek(
                   CreateOrUpdateActivity(
                     {
                       variables: {
-                          ownerEmail: currentUserEmail,
                           goalName: goalName,
                           dateOfActivity: date,
                           count: count == index + 1 ? 0 : index + 1

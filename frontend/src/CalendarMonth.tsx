@@ -31,12 +31,12 @@ function handleCalendarNavigationClick(
   }
 };
 
-export default function CalendarMonth({currentUserEmail}: {currentUserEmail: string}) {
+export default function CalendarMonth() {
   const [date, setDate] = useState(new Date());
   const [goalName, setGoal] = useState<string | null>('');
 
   const { loading, error, data } = useQuery(gqlGetUserStatus, {
-    variables: { email: currentUserEmail, duration: DisplayDuration.Month, dateToCheck: date}
+    variables: { duration: DisplayDuration.Month, dateToCheck: date}
   });
 
   const goalNameOptions: string[] = [];
@@ -73,7 +73,6 @@ export default function CalendarMonth({currentUserEmail}: {currentUserEmail: str
               <li>Sat</li>
             </ul>
             <CalendarMonthBody
-              currentUserEmail={currentUserEmail}
               loading={loading}
               error={error}
               userStatus={data?.userStatus}
